@@ -129,9 +129,11 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
     // Dispatch value to bloc
     _numbersBloc.dispatch(NumbersEventNewRandom(_currentNumber));
 
-    // Set duration rely to digits amount
-    final biggestNumber = _currentNumber > _lastNumber ? _currentNumber : _lastNumber;
-    final durationInMillis = (300 * (biggestNumber > 1 ? (1 + (_getDigitsCount(biggestNumber) / 10) * 2) : 1)).toInt();
+    // Set duration rely to digits difference
+    final difference = (_getDigitsCount(_lastNumber) - _getDigitsCount(_currentNumber)).abs();
+    print("diff: $difference");
+    final durationInMillis = (300 * (difference > 0 ? (1 + (difference / 10) * 2) : 1)).toInt();
+    print("durationInMillis: $durationInMillis");
     _spinController.duration = Duration(milliseconds: durationInMillis);
 
     // Config animation
@@ -145,6 +147,8 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
   }
 
   int _getDigitsCount(int from) {
+    if (from == 0) return 1;
+
     var value = from;
     var count = 0;
 
@@ -153,6 +157,7 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
       count++;
     }
 
+    print("count: $count");
     return count;
   }
 
