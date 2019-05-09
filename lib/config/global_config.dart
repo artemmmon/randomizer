@@ -13,8 +13,10 @@ class TransitionDuration {
 
 // Ui
 final colorSet = [
-  [Colors.blue, Colors.lightBlue, Colors.lightBlueAccent],
-  [Colors.amber, Colors.amberAccent, Colors.yellowAccent],
-  [Colors.green, Colors.greenAccent, Colors.lightGreenAccent],
-  [Colors.deepPurple, Colors.deepPurpleAccent, Colors.purpleAccent]
+//  [Colors.blue, Colors.lightBlue, Colors.lightBlueAccent],
+  [Colors.blue, Colors.lightBlue[400], Colors.lightBlue[300]],
+//  [Colors.amber, Colors.amberAccent, Colors.yellowAccent],
+  [Colors.amber, Colors.amberAccent, Colors.amberAccent[200]],
+  [Colors.teal, Colors.tealAccent, Colors.tealAccent[200]],
+  [Colors.deepPurple, Colors.deepPurpleAccent, Colors.deepPurpleAccent[100]]
 ];

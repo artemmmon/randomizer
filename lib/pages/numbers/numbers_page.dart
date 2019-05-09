@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,7 +28,7 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
   // Fields
   final _fromFocusNode = FocusNode();
   final _toFocusNode = FocusNode();
-  final inputTextSize = 32.0;
+  final _inputTextSize = 32.0;
   final TextEditingController _minController = TextEditingController();
   final TextEditingController _maxController = TextEditingController();
 
@@ -62,12 +63,12 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
   final _maxNumberLength = 7;
 
   int get _maxAvailableNumber {
-    var res = 9;
+    var res = 0;
     for (var i = 0; i < _maxNumberLength; i++) {
       res *= 10;
       res += 9;
     }
-    return Random().nextInt(res);
+    return res;
   }
 
   @override
@@ -168,13 +169,6 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
             controller.text = controller.text.substring(1);
           }
         }));
-
-    // Validate max value
-//    [_fromFocusNode, _toFocusNode].forEach((node) => node.addListener(() {
-//          if (!node.hasFocus) {
-//            _validate();
-//          }
-//        }));
   }
 
   _validate() {
@@ -187,7 +181,7 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
       _validationAnimController
         ..reset()
         ..forward();
-      _maxController.text = "$_maxAvailableNumber";
+      _maxController.text = (_minValue + Random().nextInt(_maxAvailableNumber - (_minValue - 1))).toString();
     }
   }
 
@@ -226,8 +220,9 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
               child: Column(children: <Widget>[
                 Container(
                   margin: EdgeInsets.all(10),
-                  child: Text(
+                  child: AutoSizeText(
                     "Randomize a Number!",
+                    maxLines: 1,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 32),
                   ),
@@ -237,14 +232,17 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
                   child: AnimatedBuilder(
                       animation: _spinController,
                       builder: (context, widget) => Center(
-                            child: Transform.scale(
-                              scale: _scaleAnimation.value,
-                              child: Text(
-                                _spinController.isAnimating ? _spinAnimation.value.toString() : _currentNumber.toString(),
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontFamily: "CustomMonoFont", fontSize: 74, height: .5),
-                              ),
-                            ),
+                            child: Container(
+                                margin: EdgeInsets.all(10),
+                                child: Transform.scale(
+                                  scale: _scaleAnimation.value,
+                                  child: AutoSizeText(
+                                    _spinController.isAnimating ? _spinAnimation.value.toString() : _currentNumber.toString(),
+                                    maxLines: 1,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontFamily: "CustomMonoFont", fontSize: 74, height: .5),
+                                  ),
+                                )),
                           )),
                 )
               ]),
@@ -254,60 +252,57 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
   Widget _buildInputs(BuildContext context) {
     return Container(
       margin: EdgeInsets.all(20),
-      child: Form(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Flexible(
-              child: TextFormField(
-                controller: _minController,
-                focusNode: _fromFocusNode,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  WhitelistingTextInputFormatter.digitsOnly,
-                ],
-                textAlign: TextAlign.center,
-                maxLength: _maxNumberLength,
-                maxLines: 1,
-                buildCounter: (BuildContext context, {int currentLength, int maxLength, bool isFocused}) => null,
-                style: TextStyle(fontSize: inputTextSize),
-                cursorColor: colorSet[0][2],
-                decoration: InputDecoration.collapsed(
-                    filled: true,
-                    hintStyle: TextStyle(color: colorSet[0][2]),
-                    fillColor: colorSet[0][2].withOpacity(.2),
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(width: 0, style: BorderStyle.none), borderRadius: BorderRadius.circular(10)),
-                    hintText: "Min"),
-              ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Flexible(
+            child: TextFormField(
+              controller: _minController,
+              focusNode: _fromFocusNode,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                WhitelistingTextInputFormatter.digitsOnly,
+              ],
+              textAlign: TextAlign.center,
+              maxLength: _maxNumberLength,
+              maxLines: 1,
+              buildCounter: (BuildContext context, {int currentLength, int maxLength, bool isFocused}) => null,
+              style: TextStyle(fontSize: _inputTextSize),
+              cursorColor: colorSet[0][2],
+              decoration: InputDecoration.collapsed(
+                  filled: true,
+                  hintStyle: TextStyle(color: colorSet[0][2]),
+                  fillColor: colorSet[0][2].withOpacity(.2),
+                  border: OutlineInputBorder(
+                      borderSide: BorderSide(width: 0, style: BorderStyle.none), borderRadius: BorderRadius.circular(10)),
+                  hintText: "Min"),
             ),
-            SizedBox(width: 20),
-            Flexible(
-                child: AnimatedBuilder(
-              animation: _validationAnimController,
-              builder: (context, widget) => TextFormField(
-                    controller: _maxController,
-                    focusNode: _toFocusNode,
-//                        initialValue: state?.max.toString() ?? "",
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [WhitelistingTextInputFormatter.digitsOnly],
-                    textAlign: TextAlign.center,
-                    maxLength: _maxNumberLength,
-                    maxLines: 1,
-                    style: TextStyle(fontSize: inputTextSize),
-                    cursorColor: colorSet[0][2],
-                    buildCounter: (BuildContext context, {int currentLength, int maxLength, bool isFocused}) => null,
-                    decoration: InputDecoration.collapsed(
-                        filled: true,
-                        hintStyle: TextStyle(color: colorSet[0][2]),
-                        fillColor: _validationColorTween?.value ?? colorSet[0][2].withOpacity(.2),
-                        border: OutlineInputBorder(
-                            borderSide: BorderSide(width: 0, style: BorderStyle.none), borderRadius: BorderRadius.circular(10)),
-                        hintText: "Max"),
-                  ),
-            )),
-          ],
-        ),
+          ),
+          SizedBox(width: 20),
+          Flexible(
+              child: AnimatedBuilder(
+            animation: _validationAnimController,
+            builder: (context, widget) => TextFormField(
+                  controller: _maxController,
+                  focusNode: _toFocusNode,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [WhitelistingTextInputFormatter.digitsOnly],
+                  textAlign: TextAlign.center,
+                  maxLength: _maxNumberLength,
+                  maxLines: 1,
+                  style: TextStyle(fontSize: _inputTextSize),
+                  cursorColor: colorSet[0][2],
+                  buildCounter: (BuildContext context, {int currentLength, int maxLength, bool isFocused}) => null,
+                  decoration: InputDecoration.collapsed(
+                      filled: true,
+                      hintStyle: TextStyle(color: colorSet[0][2]),
+                      fillColor: _validationColorTween?.value ?? colorSet[0][2].withOpacity(.2),
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(width: 0, style: BorderStyle.none), borderRadius: BorderRadius.circular(10)),
+                      hintText: "Max"),
+                ),
+          )),
+        ],
       ),
     );
   }

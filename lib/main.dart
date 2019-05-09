@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:randomizer/config/global_config.dart';
 import 'package:randomizer/config/icons.dart';
@@ -20,9 +21,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        fontFamily: "CustomFont",
-        primaryTextTheme: Typography().white,
-        textTheme: Typography().white,
+          fontFamily: "CustomFont",
+          primaryTextTheme: Typography().white,
+          textTheme: Typography().white,
       ),
       home: HomePage(),
     );
@@ -67,6 +68,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _initAnimations();
+    //set portrait orientation only
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   }
 
   @override
@@ -112,6 +115,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       scale: _fabSizeAnimation?.value ?? 1,
                       child: FloatingActionButton(
                         onPressed: () {
+                          // Take focus on fab
+                          FocusScope.of(context).requestFocus(FocusNode());
+                          // Emit new click value to subject
                           _clickSubject.add(null);
                         },
                         key: _fabInitialKey,
@@ -126,6 +132,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               bottomNavigationBar: BottomAppBar(
                 clipBehavior: Clip.antiAlias,
                 color: Colors.transparent,
+                elevation: 0,
                 child: _buildBottomNav(context),
                 shape: CircularNotchedRectangle(),
               ),
@@ -141,7 +148,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           return NumbersPage(_clickSubject);
           break;
         case 1:
-          return CustomPage();
+          return CustomPage(_clickSubject);
           break;
         case 2:
           return GamblePage();
@@ -173,12 +180,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Widget _buildBottomNav(BuildContext context) {
     final cornerRadius = Radius.circular(20);
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.rectangle,
-        borderRadius: BorderRadius.only(topLeft: cornerRadius, topRight: cornerRadius),
-      ),
+    return Card(
+      margin: EdgeInsets.all(10).copyWith(top: 0),
+      color: Colors.white,
+      elevation: 5,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(cornerRadius)),
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 6),
         child: Row(
@@ -337,8 +343,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _colorTween4 = ColorTween(begin: iconColor, end: colorSet[3][0]).animate(_animationControllerIcon4);
 
     _fabSizeAnimation = TweenSequence([
-      TweenSequenceItem(tween: Tween<double>(begin: 1, end: 1.3), weight: 1),
-      TweenSequenceItem(tween: Tween<double>(begin: 1.3, end: 1), weight: 1)
+      TweenSequenceItem(tween: Tween<double>(begin: 1, end: 1.4), weight: 1),
+      TweenSequenceItem(tween: Tween<double>(begin: 1.4, end: 1), weight: 1)
     ].toList())
         .animate(CurvedAnimation(parent: _revealController, curve: Curves.ease));
   }
@@ -393,3 +399,65 @@ class RevealProgressButtonPainter extends CustomPainter {
     return oldDelegate._fraction != _fraction;
   }
 }
+
+//const List<Color> _kColors = const <Color>[
+//  Colors.green,
+//  Colors.blue,
+//  Colors.red,
+//  Colors.pink,
+//  Colors.indigo,
+//  Colors.purple,
+//  Colors.blueGrey,
+//];
+//
+//List<StaggeredTile> _generateRandomTiles(int count) {
+//  Random rnd = Random();
+//  return List.generate(count, (i) => StaggeredTile.count(rnd.nextInt(4) + 1, rnd.nextInt(6) + 1));
+//}
+//
+//List<Color> _generateRandomColors(int count) {
+//  Random rnd = Random();
+//  return List.generate(count, (i) => _kColors[rnd.nextInt(_kColors.length)]);
+//}
+//
+//class Example05 extends StatelessWidget {
+//  Example05()
+//      : _tiles = _generateRandomTiles(_kItemCount).toList(),
+//        _colors = _generateRandomColors(_kItemCount).toList();
+//
+//  static const int _kItemCount = 1000;
+//  final List<StaggeredTile> _tiles;
+//  final List<Color> _colors;
+//
+//  @override
+//  Widget build(BuildContext context) {
+//    return new Scaffold(
+//        appBar: new AppBar(
+//          title: new Text('random tiles'),
+//        ),
+//        body: new StaggeredGridView.countBuilder(
+//          primary: false,
+//          crossAxisCount: 4,
+//          crossAxisSpacing: 4.0,
+//          mainAxisSpacing: 4.0,
+//          staggeredTileBuilder: _getTile,
+//          itemBuilder: _getChild,
+//          itemCount: _kItemCount,
+//        ));
+//  }
+//
+//  StaggeredTile _getTile(int index) => _tiles[index];
+//
+//  Widget _getChild(BuildContext context, int index) {
+//    return new Container(
+//      key: new ObjectKey('$index'),
+//      color: _colors[index],
+//      child: new Center(
+//        child: new CircleAvatar(
+//          backgroundColor: Colors.white,
+//          child: new Text('$index'),
+//        ),
+//      ),
+//    );
+//  }
+//}
