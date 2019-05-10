@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:randomizer/config/global_config.dart';
+import 'package:randomizer/widget/alert_widget.dart';
 import 'package:rxdart/rxdart.dart';
 
 class CustomPage extends StatefulWidget {
@@ -15,7 +16,7 @@ class CustomPage extends StatefulWidget {
   _CustomPageState createState() => _CustomPageState();
 }
 
-class _CustomPageState extends State<CustomPage> {
+class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
   // Animation
   double _opacity = 0.0;
 
@@ -28,6 +29,8 @@ class _CustomPageState extends State<CustomPage> {
 
   // Ui
   final _textColor = Colors.black;
+  final _inputColor = colorSet[1][2].withOpacity(.8);
+  final _inputErrorColor = Colors.red.withOpacity(.8);
   MediaQueryData _mediaData;
   ScrollController _scrollController;
 
@@ -36,18 +39,14 @@ class _CustomPageState extends State<CustomPage> {
   final _textFocusNode = FocusNode();
   final _inputTextSize = 16.0;
   final TextEditingController _textController = TextEditingController();
+  AnimationController _validationAnimController;
+  Animation _validationColorTween;
 
   @override
   void initState() {
     super.initState();
     // Subscribe to random click
-    _clickSubscription = widget.onRandomClick.skipWhile((_) => !mounted).listen((_) {
-//      setState(() {
-//        //todo limit max count and show dialog if max count reached
-//        _data.add(Random().nextInt(99999999).toString());
-//        _moveDown();
-//      });
-    });
+    _clickSubscription = widget.onRandomClick.skipWhile((_) => !mounted).listen((_) {});
 
     // Start opacity animation
     Future.delayed(Duration(milliseconds: (TransitionDuration.FAST2 * .8).toInt())).then((_) {
@@ -58,12 +57,16 @@ class _CustomPageState extends State<CustomPage> {
 
     // Init scroll controller
     _scrollController = ScrollController();
+
+    // Init validation animation
+    _initValidationAnim();
   }
 
   @override
   void dispose() {
     super.dispose();
     _clickSubscription.cancel();
+    _validationAnimController.dispose();
   }
 
   @override
@@ -102,8 +105,35 @@ class _CustomPageState extends State<CustomPage> {
                 ))));
   }
 
+  void _initValidationAnim() {
+    _validationAnimController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: TransitionDuration.MEDIUM),
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _validationAnimController.reset();
+        }
+      });
+    _validationColorTween = TweenSequence([
+      TweenSequenceItem(tween: ColorTween(begin: _inputColor, end: _inputErrorColor), weight: 1),
+      TweenSequenceItem(tween: ColorTween(begin: _inputErrorColor, end: _inputColor), weight: 1)
+    ].toList())
+        .animate(CurvedAnimation(parent: _validationAnimController, curve: Curves.ease));
+  }
+
+  bool _validate() => _textController.text.isNotEmpty;
+
   _addItemClick() {
-    //todo validation
+    // Validate
+    if (!_validate()) {
+      _validationAnimController.forward();
+      return;
+    }
+
+    // Clear filed focus
+    _textFocusNode.unfocus();
+
+    // Set new state
     setState(() {
       _data.add(_textController.text);
       _moveDown();
@@ -111,7 +141,25 @@ class _CustomPageState extends State<CustomPage> {
     });
   }
 
-  _clearClick() {
+  _showDeleteDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => CustomDialog(
+            title: "Delete all items",
+            description: "Are you sure that you want to delete all items?",
+            negativeButton: "No",
+            positiveButton: "Yes",
+            titleColor: colorSet[1][0],
+            titleTextColor: _textColor,
+            positiveAction: _clear, // On agree clear all data
+          ),
+    );
+  }
+
+  _clear() {
+    // Clear filed focus
+    _textFocusNode.unfocus();
+
     setState(() {
       _data.clear();
     });
@@ -132,23 +180,26 @@ class _CustomPageState extends State<CustomPage> {
       children: <Widget>[
         Expanded(
           flex: 4,
-          child: TextField(
-            controller: _textController,
-            focusNode: _textFocusNode,
-            keyboardType: TextInputType.text,
-            textAlign: TextAlign.center,
-            maxLength: _maxNumberLength,
-            maxLines: 1,
-            buildCounter: (BuildContext context, {int currentLength, int maxLength, bool isFocused}) => null,
-            style: TextStyle(fontSize: _inputTextSize, color: _textColor),
-            cursorColor: _textColor,
-            decoration: InputDecoration.collapsed(
-                filled: true,
-                hintStyle: TextStyle(color: _textColor),
-                fillColor: colorSet[1][2].withOpacity(.8),
-                border: OutlineInputBorder(
-                    borderSide: BorderSide(width: 0, style: BorderStyle.none), borderRadius: BorderRadius.circular(10)),
-                hintText: "Enter item"),
+          child: AnimatedBuilder(
+            animation: _validationAnimController,
+            builder: (context, _) => TextField(
+                  controller: _textController,
+                  focusNode: _textFocusNode,
+                  keyboardType: TextInputType.text,
+                  textAlign: TextAlign.center,
+                  maxLength: _maxNumberLength,
+                  maxLines: 1,
+                  buildCounter: (BuildContext context, {int currentLength, int maxLength, bool isFocused}) => null,
+                  style: TextStyle(fontSize: _inputTextSize, color: _textColor),
+                  cursorColor: _textColor,
+                  decoration: InputDecoration.collapsed(
+                      filled: true,
+                      hintStyle: TextStyle(color: _textColor),
+                      fillColor: _validationAnimController?.isAnimating == true ? _validationColorTween.value : _inputColor,
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(width: 0, style: BorderStyle.none), borderRadius: BorderRadius.circular(10)),
+                      hintText: "Enter item"),
+                ),
           ),
         ),
         Flexible(
@@ -161,7 +212,7 @@ class _CustomPageState extends State<CustomPage> {
         Flexible(
           flex: 1,
           child: IconButton(
-            onPressed: _clearClick,
+            onPressed: _showDeleteDialog,
             icon: Icon(Icons.delete_sweep),
           ),
         )
@@ -278,22 +329,6 @@ class _FadedChipState extends State<FadedChip> with TickerProviderStateMixin {
       scale: !didInit ? _scaleAnimation : _scaleAnimation2,
       child: AnimatedBuilder(
           animation: _controller2,
-//          child: Chip(
-//            elevation: 2,
-//            onDeleted: () {
-//              _controller2.forward();
-//            },
-//            deleteIcon: Icon(Icons.close),
-//            deleteButtonTooltipMessage: null,
-//            label: Text(
-//              widget.value,
-//              softWrap: true,
-//              maxLines: 3,
-//              overflow: TextOverflow.ellipsis,
-//            ),
-//            backgroundColor: colorSet[1][1],
-//          ),
-
           child: Card(
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 2, horizontal: 10).copyWith(right: 2),
@@ -314,7 +349,7 @@ class _FadedChipState extends State<FadedChip> with TickerProviderStateMixin {
                     onTap: () {
                       _controller2.forward();
                     },
-                    child: Icon(
+                    child: const Icon(
                       Icons.close,
                       size: 24,
                     ),
