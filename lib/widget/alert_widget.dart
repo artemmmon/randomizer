@@ -12,16 +12,15 @@ class CustomDialog extends StatelessWidget {
   final double _padding = 16.0;
   final double _labelHeight = 54;
 
-  CustomDialog({
-    @required this.title,
-    @required this.description,
-    @required this.positiveButton,
-    @required this.negativeButton,
-    this.positiveAction,
-    this.negativeAction,
-    this.titleColor = Colors.white,
-    this.titleTextColor = Colors.black
-  });
+  CustomDialog(
+      {@required this.title,
+      @required this.description,
+      @required this.positiveButton,
+      @required this.negativeButton,
+      this.positiveAction,
+      this.negativeAction,
+      this.titleColor = Colors.white,
+      this.titleTextColor = Colors.black});
 
   @override
   Widget build(BuildContext context) {

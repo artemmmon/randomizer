@@ -3,7 +3,9 @@ import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:randomizer/config/global_config.dart';
+import 'package:randomizer/pages/custom/custom_bloc.dart';
 import 'package:randomizer/widget/alert_widget.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -17,6 +19,9 @@ class CustomPage extends StatefulWidget {
 }
 
 class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
+  // Bloc
+  CustomBloc _bloc;
+
   // Animation
   double _opacity = 0.0;
 
@@ -26,9 +31,10 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
   // Data
   static const _MAX_COUNT = 100;
   List<String> _data = List();
+  String _random;
 
   // Ui
-  final _textColor = Colors.black;
+  final _textColor = Colors.white;
   final _inputColor = colorSet[1][2].withOpacity(.8);
   final _inputErrorColor = Colors.red.withOpacity(.8);
   MediaQueryData _mediaData;
@@ -45,8 +51,13 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    // Init bloc
+    _initBloc();
+
     // Subscribe to random click
-    _clickSubscription = widget.onRandomClick.skipWhile((_) => !mounted).listen((_) {});
+    _clickSubscription = widget.onRandomClick.skipWhile((_) => !mounted).listen((_) {
+      _randomize();
+    });
 
     // Start opacity animation
     Future.delayed(Duration(milliseconds: (TransitionDuration.FAST2 * .8).toInt())).then((_) {
@@ -67,6 +78,25 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     super.dispose();
     _clickSubscription.cancel();
     _validationAnimController.dispose();
+    // Text
+    _textController.dispose();
+    _textFocusNode.dispose();
+    // Bloc
+    _bloc.dispose();
+  }
+
+  _initBloc() {
+    _bloc = BlocProvider.of<CustomBloc>(context);
+
+    // Init values
+    setState(() {
+      _data = List()..addAll(_bloc.currentState.items);
+      _random = _bloc.currentState.random;
+    });
+
+    // Dispatch text changes to bloc
+//    _textController.text = _bloc.currentState.currentText;
+//    _textController.addListener(() => _bloc.dispatch(CustomEventSetText(_textController.text)));
   }
 
   @override
@@ -98,17 +128,28 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
                     _buildInput(),
                     Expanded(
                       child: AnimatedSwitcher(
-                          duration: Duration(milliseconds: TransitionDuration.FAST),
-                          child: _data.isEmpty ? _buildEmpty() : _buildChips()),
+                        duration: Duration(milliseconds: TransitionDuration.FAST),
+                        child: _buildBody(),
+                      ),
                     )
                   ],
                 ))));
   }
 
+  Widget _buildBody() {
+    if (_random != null) {
+      return _buildRandom(); // Random
+    } else if (_data.isEmpty) {
+      return _buildEmpty(); // Empty
+    } else {
+      return _buildChips(); // Usual
+    }
+  }
+
   void _initValidationAnim() {
     _validationAnimController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: TransitionDuration.MEDIUM),
+      duration: Duration(milliseconds: TransitionDuration.SLOW),
     )..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           _validationAnimController.reset();
@@ -124,6 +165,18 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
   bool _validate() => _textController.text.isNotEmpty;
 
   _addItemClick() {
+//    setState(() {
+//      _random = null;
+//      _data.add(Random().nextInt(9999999).toString());
+//      _data.add(Random().nextInt(9999999).toString());
+//      _data.add(Random().nextInt(9999999).toString());
+//      _data.add(Random().nextInt(9999999).toString());
+//      _data.add(Random().nextInt(9999999).toString());
+//      _data.add(Random().nextInt(9999999).toString());
+//      _data.add(Random().nextInt(9999999).toString());
+//    });
+//    return;
+
     // Validate
     if (!_validate()) {
       _validationAnimController.forward();
@@ -134,11 +187,29 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     _textFocusNode.unfocus();
 
     // Set new state
+    final value = _textController.text;
+
     setState(() {
-      _data.add(_textController.text);
+      _random = null;
+      _data.add(value);
       _moveDown();
       _textController.clear();
     });
+
+    // Dispatch event to bloc
+    _bloc.dispatch(CustomEventAddItem(value));
+  }
+
+  _deleteItemClick(String value) {
+    setState(() {
+      // Clear filed focus
+      _textFocusNode.unfocus();
+      // Remove
+      _data.remove(value);
+    });
+
+    // Dispatch event to bloc
+    _bloc.dispatch(CustomEventRemoveItem(value));
   }
 
   _showDeleteDialog() {
@@ -163,14 +234,38 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     setState(() {
       _data.clear();
     });
+
+    // Dispatch event to bloc
+    _bloc.dispatch(CustomEventClearItems());
+  }
+
+  _randomize() {
+    // If random != null or data is empty - do nothing
+    if (_random != null || _data.isEmpty) return;
+
+    final value = _data[Random().nextInt(_data.length)];
+    setState(() {
+      _random = value;
+      _data.clear();
+    });
+
+    // Dispatch event to bloc
+    _bloc.dispatch(CustomEventNewRandom(value));
   }
 
   Widget _buildEmpty() {
     return AutoSizeText(
-      "Enter some items to start.",
+      "Add some items to start.",
       maxLines: 1,
       textAlign: TextAlign.center,
       style: TextStyle(fontSize: 24, color: _textColor),
+    );
+  }
+
+  Widget _buildRandom() {
+    return AnimatedRandomResult(
+      _random,
+      textColor: _textColor,
     );
   }
 
@@ -182,38 +277,52 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
           flex: 4,
           child: AnimatedBuilder(
             animation: _validationAnimController,
-            builder: (context, _) => TextField(
-                  controller: _textController,
-                  focusNode: _textFocusNode,
-                  keyboardType: TextInputType.text,
-                  textAlign: TextAlign.center,
-                  maxLength: _maxNumberLength,
-                  maxLines: 1,
-                  buildCounter: (BuildContext context, {int currentLength, int maxLength, bool isFocused}) => null,
-                  style: TextStyle(fontSize: _inputTextSize, color: _textColor),
-                  cursorColor: _textColor,
-                  decoration: InputDecoration.collapsed(
-                      filled: true,
-                      hintStyle: TextStyle(color: _textColor),
-                      fillColor: _validationAnimController?.isAnimating == true ? _validationColorTween.value : _inputColor,
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(width: 0, style: BorderStyle.none), borderRadius: BorderRadius.circular(10)),
-                      hintText: "Enter item"),
-                ),
+            builder: (context, _) {
+              return TextField(
+                controller: _textController,
+                focusNode: _textFocusNode,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _addItemClick(),
+                keyboardType: TextInputType.text,
+                textAlign: TextAlign.center,
+                maxLength: _maxNumberLength,
+                maxLines: 1,
+                buildCounter: (BuildContext context, {int currentLength, int maxLength, bool isFocused}) => null,
+                style: TextStyle(fontSize: _inputTextSize, color: _textColor),
+                cursorColor: _textColor,
+                decoration: InputDecoration.collapsed(
+                    filled: true,
+                    hintStyle: TextStyle(color: _textColor),
+                    fillColor: _validationAnimController?.isAnimating == true ? _validationColorTween.value : _inputColor,
+                    border: OutlineInputBorder(
+                        borderSide: BorderSide(width: 0, style: BorderStyle.none), borderRadius: BorderRadius.circular(10)),
+                    hintText: "Enter item"),
+              );
+            },
           ),
         ),
         Flexible(
           flex: 1,
           child: IconButton(
             onPressed: _addItemClick,
-            icon: Icon(Icons.add),
+            icon: Icon(
+              Icons.add,
+              color: _textColor,
+            ),
           ),
         ),
         Flexible(
           flex: 1,
-          child: IconButton(
-            onPressed: _showDeleteDialog,
-            icon: Icon(Icons.delete_sweep),
+          child: AnimatedOpacity(
+            opacity: _random != null || _data.isEmpty ? 0 : 1,
+            duration: Duration(milliseconds: TransitionDuration.FAST),
+            child: IgnorePointer(
+              ignoring: _random != null || _data.isEmpty,
+              child: IconButton(
+                onPressed: _showDeleteDialog,
+                icon: Icon(Icons.delete_sweep, color: _textColor),
+              ),
+            ),
           ),
         )
       ],
@@ -232,7 +341,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
                 end: Alignment.bottomCenter,
                 colors: [colorSet[1][0], Colors.transparent, Colors.transparent, colorSet[1][0]],
 //                          colors: [colorSet[1][1], colorSet[2][1]],
-                stops: [0, 0.1, 0.9, 1],
+                stops: [0, 0.05, 0.95, 1],
               ).createShader(Rect.fromLTRB(0, 0, rect.width, rect.height));
             },
 //                      blendMode: BlendMode.modulate,
@@ -246,11 +355,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
                 child: Wrap(
                   spacing: 0,
                   children: _data.map((label) {
-                    return FadedChip(label, () {
-                      setState(() {
-                        _data.remove(label);
-                      });
-                    });
+                    return FadedChip(label, () => _deleteItemClick(label));
                   }).toList(),
                 ),
               ),
@@ -267,6 +372,67 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
         duration: Duration(milliseconds: TransitionDuration.FAST),
       );
     });
+  }
+}
+
+class AnimatedRandomResult extends StatefulWidget {
+  final String value;
+  final Color textColor;
+
+  AnimatedRandomResult(this.value, {this.textColor = Colors.black});
+
+  @override
+  _AnimatedRandomResultState createState() => _AnimatedRandomResultState();
+}
+
+class _AnimatedRandomResultState extends State<AnimatedRandomResult> with TickerProviderStateMixin {
+  // Config
+  final double _textSize = 32;
+
+  // Animation
+  final _animDurationInMillis = TransitionDuration.SLOW;
+  AnimationController _controller;
+  Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    // Init Animation
+    _controller = AnimationController(vsync: this, duration: Duration(milliseconds: _animDurationInMillis));
+    _scaleAnimation = TweenSequence([
+      TweenSequenceItem(tween: Tween<double>(begin: 0, end: 1.8), weight: 1),
+      TweenSequenceItem(tween: Tween<double>(begin: 1.8, end: 1), weight: 1)
+    ].toList())
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.ease));
+
+    // Start Animation
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
+            return Transform.scale(
+              scale: _scaleAnimation.value,
+              child: AutoSizeText(
+                "${widget.value}",
+                maxLines: 5,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: _textSize, color: widget.textColor),
+              ),
+            );
+          }),
+    );
   }
 }
 
@@ -341,7 +507,7 @@ class _FadedChipState extends State<FadedChip> with TickerProviderStateMixin {
                       softWrap: true,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.black),
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                   InkWell(
@@ -352,6 +518,7 @@ class _FadedChipState extends State<FadedChip> with TickerProviderStateMixin {
                     child: const Icon(
                       Icons.close,
                       size: 24,
+                      color: Colors.white,
                     ),
                   )
                 ],

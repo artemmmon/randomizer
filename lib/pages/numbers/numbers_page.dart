@@ -56,9 +56,11 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
   // Spin number
   int _currentNumber = 0;
   int _lastNumber = 0;
+  //
+  final _spinDurationInMillis = 1000;
   AnimationController _spinController;
-  Animation<int> _spinAnimation;
   Animation<double> _scaleAnimation;
+  Animation<int> _spinAnimation;
 
   final _maxNumberLength = 7;
 
@@ -187,7 +189,7 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
 
   _initAnimations() {
     // Init spin animation
-    _spinController = AnimationController(vsync: this, duration: Duration(milliseconds: 1000));
+    _spinController = AnimationController(vsync: this, duration: Duration(milliseconds: _spinDurationInMillis));
     _spinAnimation = IntTween(begin: 0, end: 0).animate(
       CurvedAnimation(parent: _spinController, curve: Curves.linear),
     );

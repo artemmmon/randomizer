@@ -9,17 +9,17 @@ class NumbersBloc extends Bloc<NumbersEvent, NumbersState> {
     switch (event.runtimeType) {
       case NumbersEventSetMin:
         yield currentState
-          ..min = (event as NumbersEventSetMin).value
+          ..min = event.value
           ..didInit = true;
         break;
       case NumbersEventSetMax:
         yield currentState
-          ..max = (event as NumbersEventSetMax).value
+          ..max = event.value
           ..didInit = true;
         break;
       case NumbersEventNewRandom:
         yield currentState
-          ..random = (event as NumbersEventNewRandom).value;
+          ..random = event.value;
         break;
     }
   }
