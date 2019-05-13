@@ -28,7 +28,7 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
   // Fields
   final _fromFocusNode = FocusNode();
   final _toFocusNode = FocusNode();
-  final _inputTextSize = 32.0;
+  final double _inputTextSize = 24;
   final TextEditingController _minController = TextEditingController();
   final TextEditingController _maxController = TextEditingController();
 
@@ -166,7 +166,7 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
 
   _initValidation() {
     // Validate field 0 first case
-    [_minController, _minController].forEach((controller) => controller.addListener(() {
+    [_minController, _maxController].forEach((controller) => controller.addListener(() {
           if (controller.text.length >= 2 && controller.text.startsWith("0")) {
             controller.text = controller.text.substring(1);
           }
@@ -271,7 +271,8 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
               buildCounter: (BuildContext context, {int currentLength, int maxLength, bool isFocused}) => null,
               style: TextStyle(fontSize: _inputTextSize),
               cursorColor: colorSet[0][2],
-              decoration: InputDecoration.collapsed(
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.all(5),
                   filled: true,
                   hintStyle: TextStyle(color: colorSet[0][2]),
                   fillColor: colorSet[0][2].withOpacity(.2),
@@ -295,7 +296,8 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
                   style: TextStyle(fontSize: _inputTextSize),
                   cursorColor: colorSet[0][2],
                   buildCounter: (BuildContext context, {int currentLength, int maxLength, bool isFocused}) => null,
-                  decoration: InputDecoration.collapsed(
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.all(5),
                       filled: true,
                       hintStyle: TextStyle(color: colorSet[0][2]),
                       fillColor: _validationColorTween?.value ?? colorSet[0][2].withOpacity(.2),

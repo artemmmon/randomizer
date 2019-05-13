@@ -11,7 +11,9 @@ class CustomBloc extends Bloc<CustomEvent, CustomState> {
         yield currentState..currentText = event.value;
         break;
       case CustomEventAddItem:
-        yield currentState..items.add(event.value);
+        yield currentState
+          ..items.add(event.value)
+          ..random = null;
         break;
       case CustomEventRemoveItem:
         final newState = currentState..items.remove(event.value);

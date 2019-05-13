@@ -79,8 +79,7 @@ flutter:
       - asset: fonts/CustomIcons.ttf
     - family: CustomFont
       fonts:
-#      - asset: fonts/Pacifico-Regular.ttf
-      - asset: fonts/YeonSung-Regular.ttf
+      - asset: fonts/Comfortaa/Comfortaa[wght].ttf
     - family: CustomMonoFont
       fonts:
         - asset: fonts/RobotoMono-Medium.ttf

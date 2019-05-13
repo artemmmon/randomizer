@@ -171,7 +171,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
     return Expanded(
         child: AnimatedSwitcher(
-      duration: Duration(milliseconds: TransitionDuration.FAST),
+      duration: Duration(milliseconds: TransitionDuration.FAST ~/ 2),
       child: getChild(),
     ));
   }

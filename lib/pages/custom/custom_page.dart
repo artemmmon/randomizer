@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:randomizer/config/global_config.dart';
 import 'package:randomizer/pages/custom/custom_bloc.dart';
+import 'package:randomizer/pages/custom/random_result_widget.dart';
 import 'package:randomizer/widget/alert_widget.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -24,14 +25,17 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
 
   // Animation
   double _opacity = 0.0;
+  var _animateChips = false;
+  var _animateRandom = false;
 
   // Click subscription
   StreamSubscription _clickSubscription;
 
   // Data
-  static const _MAX_COUNT = 100;
+  static const _MAX_COUNT = 50;
   List<String> _data = List();
   String _random;
+  final GlobalKey<AnimatedListState> _listKey = GlobalKey();
 
   // Ui
   final _textColor = Colors.white;
@@ -81,22 +85,18 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     // Text
     _textController.dispose();
     _textFocusNode.dispose();
-    // Bloc
-    _bloc.dispose();
   }
 
   _initBloc() {
     _bloc = BlocProvider.of<CustomBloc>(context);
 
     // Init values
-    setState(() {
-      _data = List()..addAll(_bloc.currentState.items);
-      _random = _bloc.currentState.random;
-    });
+    _data = List()..addAll(_bloc.currentState.items);
+    _random = _bloc.currentState.random;
 
     // Dispatch text changes to bloc
-//    _textController.text = _bloc.currentState.currentText;
-//    _textController.addListener(() => _bloc.dispatch(CustomEventSetText(_textController.text)));
+    _textController.text = _bloc.currentState.currentText;
+    _textController.addListener(() => _bloc.dispatch(CustomEventSetText(_textController.text)));
   }
 
   @override
@@ -136,16 +136,6 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
                 ))));
   }
 
-  Widget _buildBody() {
-    if (_random != null) {
-      return _buildRandom(); // Random
-    } else if (_data.isEmpty) {
-      return _buildEmpty(); // Empty
-    } else {
-      return _buildChips(); // Usual
-    }
-  }
-
   void _initValidationAnim() {
     _validationAnimController = AnimationController(
       vsync: this,
@@ -164,18 +154,26 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
 
   bool _validate() => _textController.text.isNotEmpty;
 
-  _addItemClick() {
-//    setState(() {
-//      _random = null;
-//      _data.add(Random().nextInt(9999999).toString());
-//      _data.add(Random().nextInt(9999999).toString());
-//      _data.add(Random().nextInt(9999999).toString());
-//      _data.add(Random().nextInt(9999999).toString());
-//      _data.add(Random().nextInt(9999999).toString());
-//      _data.add(Random().nextInt(9999999).toString());
-//      _data.add(Random().nextInt(9999999).toString());
-//    });
-//    return;
+  _addItemClick([bool fast = false]) {
+    if (fast) {
+      addToBlocDummy(Random random) async {
+        for (var i = 0; i < 5; i++) {
+          _bloc.dispatch(CustomEventAddItem(random.nextInt(9999999).toString()));
+        }
+      }
+
+      final random = Random();
+      setState(() {
+        _random = null;
+        _data.add(random.nextInt(9999999).toString());
+        _data.add(random.nextInt(9999999).toString());
+        _data.add(random.nextInt(9999999).toString());
+        _data.add(random.nextInt(9999999).toString());
+        _data.add(random.nextInt(9999999).toString());
+      });
+      addToBlocDummy(random);
+      return;
+    }
 
     // Validate
     if (!_validate()) {
@@ -183,18 +181,25 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
       return;
     }
 
-    // Clear filed focus
-    _textFocusNode.unfocus();
-
+    // Turn on chip reveal animation
+    _animateChips = true;
     // Set new state
     final value = _textController.text;
 
+    var index = _data.length;
     setState(() {
       _random = null;
       _data.add(value);
       _moveDown();
       _textController.clear();
     });
+
+    if (index > 0) {
+      _listKey.currentState.insertItem(
+        index,
+        duration: Duration(milliseconds: TransitionDuration.FAST),
+      );
+    }
 
     // Dispatch event to bloc
     _bloc.dispatch(CustomEventAddItem(value));
@@ -205,7 +210,18 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
       // Clear filed focus
       _textFocusNode.unfocus();
       // Remove
-      _data.remove(value);
+      var index = _data.indexOf(value);
+      _data.removeAt(index);
+      _listKey.currentState.removeItem(index, (BuildContext context, Animation<double> animation) {
+        return FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Interval(0.5, 1.0)),
+          child: SizeTransition(
+            sizeFactor: CurvedAnimation(parent: animation, curve: Interval(0.0, 1.0)),
+            axisAlignment: 0.0,
+            child: _buildItem(value),
+          ),
+        );
+      }, duration: Duration(milliseconds: TransitionDuration.FAST));
     });
 
     // Dispatch event to bloc
@@ -220,8 +236,6 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
             description: "Are you sure that you want to delete all items?",
             negativeButton: "No",
             positiveButton: "Yes",
-            titleColor: colorSet[1][0],
-            titleTextColor: _textColor,
             positiveAction: _clear, // On agree clear all data
           ),
     );
@@ -233,6 +247,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
 
     setState(() {
       _data.clear();
+//      _listKey.currentState.
     });
 
     // Dispatch event to bloc
@@ -243,6 +258,10 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     // If random != null or data is empty - do nothing
     if (_random != null || _data.isEmpty) return;
 
+    // Turn on animation
+    _animateRandom = true;
+
+    // Set new state
     final value = _data[Random().nextInt(_data.length)];
     setState(() {
       _random = value;
@@ -251,6 +270,26 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
 
     // Dispatch event to bloc
     _bloc.dispatch(CustomEventNewRandom(value));
+  }
+
+  _moveDown() {
+    Future.delayed(Duration(milliseconds: (100).toInt())).then((_) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        curve: Curves.ease,
+        duration: Duration(milliseconds: TransitionDuration.FAST),
+      );
+    });
+  }
+
+  Widget _buildBody() {
+    if (_random != null) {
+      return _buildRandom(); // Random
+    } else if (_data.isEmpty) {
+      return _buildEmpty(); // Empty
+    } else {
+      return _buildContent(); // Usual
+    }
   }
 
   Widget _buildEmpty() {
@@ -266,51 +305,90 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     return AnimatedRandomResult(
       _random,
       textColor: _textColor,
+      animate: _animateRandom,
     );
   }
 
   Widget _buildInput() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: <Widget>[
+//        Flexible(
+//            flex: 1,
+//            child: AnimatedOpacity(
+//              opacity: _data.length >= _MAX_COUNT ? 0 : 1,
+//              duration: Duration(milliseconds: TransitionDuration.FAST),
+//              child: IgnorePointer(
+//                ignoring: _data.length >= _MAX_COUNT,
+//                child: IconButton(
+//                  onPressed: () => _addItemClick(true),
+//                  icon: Icon(
+//                    Icons.add,
+//                    color: _textColor,
+//                  ),
+//                ),
+//              ),
+//            )),
         Expanded(
-          flex: 4,
-          child: AnimatedBuilder(
-            animation: _validationAnimController,
-            builder: (context, _) {
-              return TextField(
-                controller: _textController,
-                focusNode: _textFocusNode,
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => _addItemClick(),
-                keyboardType: TextInputType.text,
-                textAlign: TextAlign.center,
-                maxLength: _maxNumberLength,
-                maxLines: 1,
-                buildCounter: (BuildContext context, {int currentLength, int maxLength, bool isFocused}) => null,
-                style: TextStyle(fontSize: _inputTextSize, color: _textColor),
-                cursorColor: _textColor,
-                decoration: InputDecoration.collapsed(
-                    filled: true,
-                    hintStyle: TextStyle(color: _textColor),
-                    fillColor: _validationAnimController?.isAnimating == true ? _validationColorTween.value : _inputColor,
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(width: 0, style: BorderStyle.none), borderRadius: BorderRadius.circular(10)),
-                    hintText: "Enter item"),
-              );
-            },
-          ),
-        ),
+            flex: 4,
+            child: AnimatedOpacity(
+                opacity: _data.length >= _MAX_COUNT ? 0 : 1,
+                duration: Duration(milliseconds: TransitionDuration.FAST),
+                child: IgnorePointer(
+                  ignoring: _data.length >= _MAX_COUNT,
+                  child: AnimatedBuilder(
+                    animation: _validationAnimController,
+                    builder: (context, _) {
+                      return TextField(
+                        controller: _textController,
+                        focusNode: _textFocusNode,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _addItemClick(),
+                        keyboardType: TextInputType.text,
+                        textAlign: TextAlign.center,
+                        maxLength: _maxNumberLength,
+                        maxLines: 1,
+                        buildCounter: (BuildContext context, {int currentLength, int maxLength, bool isFocused}) => null,
+                        style: TextStyle(fontSize: _inputTextSize, color: _textColor),
+                        cursorColor: _textColor,
+                        decoration: InputDecoration(
+                            filled: true,
+                            contentPadding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+                            hintStyle: TextStyle(color: _textColor),
+                            fillColor: _validationAnimController?.isAnimating == true ? _validationColorTween.value : _inputColor,
+                            border: OutlineInputBorder(
+                                borderSide: BorderSide(width: 0, style: BorderStyle.none),
+                                borderRadius: BorderRadius.circular(10)),
+                            hintText: "Enter item"),
+                      );
+                    },
+                  ),
+                ))),
         Flexible(
-          flex: 1,
-          child: IconButton(
-            onPressed: _addItemClick,
-            icon: Icon(
-              Icons.add,
-              color: _textColor,
-            ),
-          ),
-        ),
+            flex: 1,
+            child: AnimatedOpacity(
+              opacity: _data.length >= _MAX_COUNT ? 0 : 1,
+              duration: Duration(milliseconds: TransitionDuration.FAST),
+              child: IgnorePointer(
+                ignoring: _data.length >= _MAX_COUNT,
+                child: GestureDetector(
+                  ////////
+                  // TEMPORARY FOR TEST
+                  ////////
+                  onLongPress: () => _addItemClick(true),
+                  ////////
+
+                  child: IconButton(
+                    onPressed: _addItemClick,
+                    icon: Icon(
+                      Icons.add,
+                      color: _textColor,
+                    ),
+                  ),
+                ),
+              ),
+            )),
         Flexible(
           flex: 1,
           child: AnimatedOpacity(
@@ -329,7 +407,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildChips() {
+  Widget _buildContent() {
     return SizedBox(
       height: double.infinity,
       child: Container(
@@ -346,188 +424,64 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
             },
 //                      blendMode: BlendMode.modulate,
             blendMode: BlendMode.dstOut,
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              physics: BouncingScrollPhysics(),
-              scrollDirection: Axis.vertical,
-              child: Container(
-                margin: EdgeInsets.symmetric(vertical: 15),
-                child: Wrap(
-                  spacing: 0,
-                  children: _data.map((label) {
-                    return FadedChip(label, () => _deleteItemClick(label));
-                  }).toList(),
-                ),
-              ),
+            child: Container(
+              margin: EdgeInsets.symmetric(vertical: 15),
+              child: AnimatedList(
+                  key: _listKey,
+                  controller: _scrollController,
+                  physics: BouncingScrollPhysics(),
+                  initialItemCount: _data.length,
+                  itemBuilder: (context, position, animation) {
+                    return AnimatedBuilder(
+                      animation: animation,
+                      builder: (context, child) {
+                        var offset = _mediaData.size.width * 2;
+                        return Transform.translate(
+                          offset: Offset(-offset + (animation.value * offset), 0),
+                          child: _buildItem(_data[position]),
+                        );
+                      },
+                    );
+                  }),
             ),
           )),
     );
   }
 
-  _moveDown() {
-    Future.delayed(Duration(milliseconds: (100).toInt())).then((_) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        curve: Curves.ease,
-        duration: Duration(milliseconds: TransitionDuration.FAST),
-      );
-    });
-  }
-}
-
-class AnimatedRandomResult extends StatefulWidget {
-  final String value;
-  final Color textColor;
-
-  AnimatedRandomResult(this.value, {this.textColor = Colors.black});
-
-  @override
-  _AnimatedRandomResultState createState() => _AnimatedRandomResultState();
-}
-
-class _AnimatedRandomResultState extends State<AnimatedRandomResult> with TickerProviderStateMixin {
-  // Config
-  final double _textSize = 32;
-
-  // Animation
-  final _animDurationInMillis = TransitionDuration.SLOW;
-  AnimationController _controller;
-  Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    // Init Animation
-    _controller = AnimationController(vsync: this, duration: Duration(milliseconds: _animDurationInMillis));
-    _scaleAnimation = TweenSequence([
-      TweenSequenceItem(tween: Tween<double>(begin: 0, end: 1.8), weight: 1),
-      TweenSequenceItem(tween: Tween<double>(begin: 1.8, end: 1), weight: 1)
-    ].toList())
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.ease));
-
-    // Start Animation
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _controller.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) {
-            return Transform.scale(
-              scale: _scaleAnimation.value,
-              child: AutoSizeText(
-                "${widget.value}",
-                maxLines: 5,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: _textSize, color: widget.textColor),
-              ),
-            );
-          }),
-    );
-  }
-}
-
-class FadedChip extends StatefulWidget {
-  final String value;
-  final Function onDelete;
-
-  FadedChip(this.value, this.onDelete);
-
-  @override
-  _FadedChipState createState() => _FadedChipState();
-}
-
-class _FadedChipState extends State<FadedChip> with TickerProviderStateMixin {
-  bool didInit = false;
-  double _opacity = 0;
-
-  AnimationController _controller;
-  AnimationController _controller2;
-  Animation<double> _scaleAnimation;
-  Animation<double> _scaleAnimation2;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 200),
-    )..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          setState(() {
-            didInit = true;
-          });
-        }
-      });
-    _controller2 = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 200),
-    )..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          widget.onDelete();
-          _controller2.reset();
-        }
-      });
-    _scaleAnimation = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(parent: _controller, curve: Curves.ease));
-    _scaleAnimation2 = Tween<double>(begin: 1, end: 0).animate(CurvedAnimation(parent: _controller2, curve: Curves.ease));
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _controller.dispose();
-    _controller2.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: !didInit ? _scaleAnimation : _scaleAnimation2,
-      child: AnimatedBuilder(
-          animation: _controller2,
-          child: Card(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 10).copyWith(right: 2),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Flexible(
-                    child: Text(
-                      widget.value,
-                      softWrap: true,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () {
-                      _controller2.forward();
-                    },
-                    child: const Icon(
-                      Icons.close,
-                      size: 24,
-                      color: Colors.white,
-                    ),
-                  )
-                ],
+  Widget _buildItem(String value) {
+    return Card(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10).copyWith(right: 5),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Align(
+                alignment: Alignment.center,
+                child: Text(
+                  value,
+                  softWrap: true,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: Colors.white, fontSize: 24),
+                ),
               ),
             ),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            color: colorSet[1][1],
-          ),
-          builder: (context, child) => child),
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                _deleteItemClick(value);
+              },
+              child: const Icon(
+                Icons.close,
+                size: 24,
+                color: Colors.white,
+              ),
+            )
+          ],
+        ),
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorSet[1][1],
     );
   }
 }

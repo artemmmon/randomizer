@@ -5,12 +5,10 @@ import 'package:randomizer/config/global_config.dart';
 class CustomDialog extends StatelessWidget {
   // Data
   final String title, description, positiveButton, negativeButton;
-  final Color titleColor, titleTextColor;
   final Function positiveAction, negativeAction;
 
   // Sizes
   final double _padding = 16.0;
-  final double _labelHeight = 54;
 
   CustomDialog(
       {@required this.title,
@@ -18,9 +16,7 @@ class CustomDialog extends StatelessWidget {
       @required this.positiveButton,
       @required this.negativeButton,
       this.positiveAction,
-      this.negativeAction,
-      this.titleColor = Colors.white,
-      this.titleTextColor = Colors.black});
+      this.negativeAction});
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +32,9 @@ class CustomDialog extends StatelessWidget {
 
   dialogContent(BuildContext context) {
     return Stack(
-      overflow: Overflow.visible,
       children: <Widget>[
         Container(
-          padding: EdgeInsets.only(
-            top: _labelHeight,
-            left: _padding,
-            right: _padding,
-          ),
+          padding: EdgeInsets.all(_padding).copyWith(top: _padding + (_padding / 2)).copyWith(bottom: 0),
           decoration: new BoxDecoration(
             color: Colors.white,
             shape: BoxShape.rectangle,
@@ -59,57 +50,46 @@ class CustomDialog extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min, // To make the card compact
             children: <Widget>[
+              AutoSizeText(
+                title,
+                maxLines: 2,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 28, color: Colors.black, fontWeight: FontWeight.w500),
+              ),
+              SizedBox(height: 24.0),
               Text(
                 description,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16.0, color: Colors.black),
               ),
               SizedBox(height: 16.0),
-              Align(
-                alignment: Alignment.bottomRight,
-                child: ButtonBar(children: <Widget>[
-                  FlatButton(
-                    onPressed: () {
-                      if (negativeAction != null) {
-                        negativeAction();
-                      }
-                      Navigator.of(context).pop(); // To close the dialog
-                    },
-                    child: Text(negativeButton),
+              ButtonBar(alignment: MainAxisAlignment.spaceBetween, children: <Widget>[
+                FlatButton(
+                  onPressed: () {
+                    if (negativeAction != null) {
+                      negativeAction();
+                    }
+                    Navigator.of(context).pop(); // To close the dialog
+                  },
+                  child: Text(
+                    negativeButton,
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  FlatButton(
-                    onPressed: () {
-                      if (positiveAction != null) {
-                        positiveAction();
-                      }
-                      Navigator.of(context).pop(); // To close the dialog
-                    },
-                    child: Text(positiveButton),
+                ),
+                FlatButton(
+                  onPressed: () {
+                    if (positiveAction != null) {
+                      positiveAction();
+                    }
+                    Navigator.of(context).pop(); // To close the dialog
+                  },
+                  child: Text(
+                    positiveButton,
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                ]),
-              ),
+                ),
+              ]),
             ],
-          ),
-        ),
-        Positioned(
-          left: _padding * 3,
-          right: _padding * 3,
-          top: -(_labelHeight / 2),
-          child: SizedBox(
-            height: _labelHeight,
-            child: Container(
-              alignment: Alignment(0, 0),
-              decoration: BoxDecoration(
-                color: titleColor,
-                borderRadius: BorderRadius.circular(_labelHeight / 2),
-              ),
-              child: AutoSizeText(
-                title,
-                maxLines: 1,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 28, color: titleTextColor),
-              ),
-            ),
           ),
         ),
       ],
