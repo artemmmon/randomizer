@@ -8,6 +8,7 @@ import 'package:randomizer/config/global_config.dart';
 import 'package:randomizer/pages/custom/custom_bloc.dart';
 import 'package:randomizer/pages/custom/random_result_widget.dart';
 import 'package:randomizer/widget/alert_widget.dart';
+import 'package:randomizer/widget/helper/add_to_clipboard_widget.dart';
 import 'package:rxdart/rxdart.dart';
 
 class CustomPage extends StatefulWidget {
@@ -25,7 +26,6 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
 
   // Animation
   double _opacity = 0.0;
-  var _animateChips = false;
   var _animateRandom = false;
 
   // Click subscription
@@ -181,8 +181,6 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
       return;
     }
 
-    // Turn on chip reveal animation
-    _animateChips = true;
     // Set new state
     final value = _textController.text;
 
@@ -218,7 +216,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
           child: SizeTransition(
             sizeFactor: CurvedAnimation(parent: animation, curve: Interval(0.0, 1.0)),
             axisAlignment: 0.0,
-            child: _buildItem(value),
+            child: _buildItem(index, value),
           ),
         );
       }, duration: Duration(milliseconds: TransitionDuration.FAST));
@@ -302,10 +300,17 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
   }
 
   Widget _buildRandom() {
-    return AnimatedRandomResult(
-      _random,
-      textColor: _textColor,
-      animate: _animateRandom,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        AnimatedRandomResult(
+          _random,
+          textColor: _textColor,
+          animate: _animateRandom,
+        ),
+        SizedBox(height: 16),
+        AddToClipboard(() => _random),
+      ],
     );
   }
 
@@ -417,9 +422,10 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
               return LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [colorSet[1][0], Colors.transparent, Colors.transparent, colorSet[1][0]],
-//                          colors: [colorSet[1][1], colorSet[2][1]],
-                stops: [0, 0.05, 0.95, 1],
+                colors: [Colors.black, Colors.transparent, Colors.transparent, Colors.black],
+//                          colors: [colorSet[0][0], colorSet[0][1]],
+//                stops: [0, 0.05, 0.95, 1],
+                stops: [0, 0.07, 0.93, 1],
               ).createShader(Rect.fromLTRB(0, 0, rect.width, rect.height));
             },
 //                      blendMode: BlendMode.modulate,
@@ -438,7 +444,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
                         var offset = _mediaData.size.width * 2;
                         return Transform.translate(
                           offset: Offset(-offset + (animation.value * offset), 0),
-                          child: _buildItem(_data[position]),
+                          child: _buildItem(position, _data[position]),
                         );
                       },
                     );
@@ -448,12 +454,16 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildItem(String value) {
+  Widget _buildItem(int index, String value) {
     return Card(
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10).copyWith(right: 5),
+        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 6),
         child: Row(
           children: <Widget>[
+            Text(
+              "${(index + 1)}. ",
+              style: TextStyle(color: Colors.white, fontSize: 24),
+            ),
             Expanded(
               child: Align(
                 alignment: Alignment.center,

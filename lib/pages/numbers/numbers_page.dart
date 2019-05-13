@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:randomizer/config/global_config.dart';
 import 'package:randomizer/pages/numbers/numbers_bloc.dart';
+import 'package:randomizer/widget/helper/add_to_clipboard_widget.dart';
 import 'package:rxdart/rxdart.dart';
 
 class NumbersPage extends StatefulWidget {
@@ -56,6 +57,7 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
   // Spin number
   int _currentNumber = 0;
   int _lastNumber = 0;
+
   //
   final _spinDurationInMillis = 1000;
   AnimationController _spinController;
@@ -236,14 +238,21 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
                       builder: (context, widget) => Center(
                             child: Container(
                                 margin: EdgeInsets.all(10),
-                                child: Transform.scale(
-                                  scale: _scaleAnimation.value,
-                                  child: AutoSizeText(
-                                    _spinController.isAnimating ? _spinAnimation.value.toString() : _currentNumber.toString(),
-                                    maxLines: 1,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(fontFamily: "CustomMonoFont", fontSize: 74, height: .5),
-                                  ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    Transform.scale(
+                                      scale: _scaleAnimation.value,
+                                      child: AutoSizeText(
+                                        _spinController.isAnimating ? _spinAnimation.value.toString() : _currentNumber.toString(),
+                                        maxLines: 1,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(fontFamily: "CustomMonoFont", fontSize: 74, height: .5),
+                                      ),
+                                    ),
+                                    SizedBox(height: 16),
+                                    AddToClipboard(() => _currentNumber),
+                                  ],
                                 )),
                           )),
                 )
@@ -272,7 +281,7 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
               style: TextStyle(fontSize: _inputTextSize),
               cursorColor: colorSet[0][2],
               decoration: InputDecoration(
-                contentPadding: EdgeInsets.all(5),
+                  contentPadding: EdgeInsets.all(5),
                   filled: true,
                   hintStyle: TextStyle(color: colorSet[0][2]),
                   fillColor: colorSet[0][2].withOpacity(.2),
@@ -297,7 +306,7 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
                   cursorColor: colorSet[0][2],
                   buildCounter: (BuildContext context, {int currentLength, int maxLength, bool isFocused}) => null,
                   decoration: InputDecoration(
-                    contentPadding: EdgeInsets.all(5),
+                      contentPadding: EdgeInsets.all(5),
                       filled: true,
                       hintStyle: TextStyle(color: colorSet[0][2]),
                       fillColor: _validationColorTween?.value ?? colorSet[0][2].withOpacity(.2),

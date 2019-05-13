@@ -131,8 +131,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         key: _fabInitialKey,
                         backgroundColor: _fabColorAnimation?.value ?? colorSet[_currentPageIndex][1],
                         child: Icon(
-                          Icons.play_arrow,
-                          size: 32,
+                          CustomIcons.dices,
+                          size: 24,
                           color: Colors.black,
                         ),
                         elevation: 2.0,
@@ -226,7 +226,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 return IconButton(
                     key: key,
                     icon: Icon(
-                      CustomIcons.list_alt,
+                      CustomIcons.list,
                       size: _sizeTween2.value,
                     ),
                     color: _colorTween2.value,
@@ -249,7 +249,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 return IconButton(
                     key: key,
                     icon: Icon(
-                      CustomIcons.diamond,
+                      CustomIcons.dice,
                       size: _sizeTween3.value,
                     ),
                     color: _colorTween3.value,

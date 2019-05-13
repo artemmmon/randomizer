@@ -61,6 +61,14 @@ class CustomIcons {
 
   static const IconData help = const IconData(0xe800, fontFamily: _kFontFam);
   static const IconData sort_numeric = const IconData(0xe801, fontFamily: _kFontFam);
-  static const IconData list_alt = const IconData(0xe802, fontFamily: _kFontFam);
+  static const IconData dices = const IconData(0xe802, fontFamily: _kFontFam);
+  static const IconData list = const IconData(0xe803, fontFamily: _kFontFam);
+  static const IconData dice_1 = const IconData(0xe804, fontFamily: _kFontFam);
+  static const IconData dice_2 = const IconData(0xe805, fontFamily: _kFontFam);
+  static const IconData dice_3 = const IconData(0xe806, fontFamily: _kFontFam);
+  static const IconData dice_5 = const IconData(0xe807, fontFamily: _kFontFam);
+  static const IconData dice_6 = const IconData(0xe808, fontFamily: _kFontFam);
+  static const IconData dice_4 = const IconData(0xe809, fontFamily: _kFontFam);
+  static const IconData dice = const IconData(0xe812, fontFamily: _kFontFam);
   static const IconData diamond = const IconData(0xf219, fontFamily: _kFontFam);
 }
