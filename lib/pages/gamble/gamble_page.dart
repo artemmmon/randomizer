@@ -5,6 +5,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:randomizer/config/global_config.dart';
 import 'package:randomizer/config/icons.dart';
+import 'package:randomizer/widget/alert_choose_widget.dart';
 
 class GamblePage extends StatefulWidget {
   @override
@@ -56,12 +57,53 @@ class _GamblePageState extends State<GamblePage> {
         _opacity = 1.0;
       });
     });
+
+    Future.delayed(Duration(milliseconds: (TransitionDuration.SLOW).toInt())).then((_) {
+      _showChooserDialog();
+    });
   }
 
   @override
   void dispose() {
     super.dispose();
     _clickSubscription?.cancel();
+  }
+
+  _showChooserDialog() {
+    final double iconSize = 36;
+    final double space = 4;
+
+    Icon getIcon(int index) => Icon(dices[index], size: iconSize);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => ChooserDialog(
+            title: "Choose dice amount",
+            callBack: (value) {
+              Navigator.of(context).pop();
+            },
+            options: {
+              1: Container(width: double.infinity, child: getIcon(0)),
+              2: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[getIcon(0), SizedBox(width: space), getIcon(1)]),
+              3: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[getIcon(0), SizedBox(width: space), getIcon(1), SizedBox(width: space), getIcon(2)]),
+              4: Row(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+                getIcon(0),
+                SizedBox(width: space),
+                getIcon(1),
+                SizedBox(width: space),
+                getIcon(2),
+                SizedBox(width: space),
+                getIcon(3)
+              ])
+            },
+          ),
+    );
   }
 
   @override

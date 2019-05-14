@@ -132,7 +132,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         backgroundColor: _fabColorAnimation?.value ?? colorSet[_currentPageIndex][1],
                         child: Icon(
                           CustomIcons.dices,
-                          size: 24,
+                          size: 32,
                           color: Colors.black,
                         ),
                         elevation: 2.0,
