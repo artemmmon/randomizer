@@ -39,8 +39,8 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
 
   // Ui
   final _textColor = Colors.white;
-  final _inputColor = colorSet[1][2].withOpacity(.8);
-  final _inputErrorColor = Colors.red.withOpacity(.8);
+  final _inputColor = colorSet[1][2].withOpacity(.2);
+  final _inputErrorColor = Colors.red.withOpacity(.5);
   MediaQueryData _mediaData;
   ScrollController _scrollController;
 

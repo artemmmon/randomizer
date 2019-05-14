@@ -22,6 +22,7 @@ class _GamblePageState extends State<GamblePage> {
   StreamSubscription _clickSubscription;
 
   // Data
+  int _diceAmount = 1;
   final dices = [
     CustomIcons.dice_1,
     CustomIcons.dice_2,
@@ -74,16 +75,53 @@ class _GamblePageState extends State<GamblePage> {
             },
             child: Container(
                 alignment: Alignment(0, 0),
+                margin: EdgeInsets.all(10),
                 color: Colors.transparent,
                 child: Column(
                   children: <Widget>[
-                    Container(
-                      margin: EdgeInsets.all(10),
-                      child: AutoSizeText(
-                        "Roll the dice!",
-                        maxLines: 1,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 32, color: _textColor),
+                    AutoSizeText(
+                      "Roll the dice!",
+                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 32, color: _textColor),
+                    ),
+                    SizedBox(height: 16),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          Text(
+                            "Dices:",
+                            style: TextStyle(fontSize: 24),
+                          ),
+                          SizedBox(width: 5),
+                          InkWell(
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: () {},
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8).copyWith(right: 0),
+                              decoration: BoxDecoration(
+                                color: colorSet[2][2].withOpacity(.5),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Row(
+                                children: <Widget>[
+                                  Text(
+                                    "$_diceAmount",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                                  ),
+                                  Icon(
+                                    Icons.arrow_drop_down,
+                                    color: Colors.white,
+                                  )
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
                       ),
                     ),
                     Expanded(
@@ -135,8 +173,6 @@ class _GamblePageState extends State<GamblePage> {
                         ],
                       ),
                     ),
-//                    _buildInput(),
-//                    _buildBody(),
                   ],
                 ))));
   }
