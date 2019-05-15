@@ -159,7 +159,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           return CustomPage(_clickSubject);
           break;
         case 2:
-          return GamblePage();
+          return GamblePage(_clickSubject);
           break;
         case 3:
           return AnswersPage();

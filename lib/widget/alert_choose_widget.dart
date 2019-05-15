@@ -55,7 +55,7 @@ class ChooserDialog extends StatelessWidget {
                   child: InkWell(
                     onTap: () => callBack(options.entries.firstWhere((entry) => entry.value == value).key),
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.all(12.0),
                       child: value,
                     ),
                   )))
