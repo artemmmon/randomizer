@@ -8,6 +8,7 @@ import 'package:randomizer/config/icons.dart';
 import 'package:randomizer/pages/answers/answers_page.dart';
 import 'package:randomizer/pages/custom/custom_bloc.dart';
 import 'package:randomizer/pages/custom/custom_page.dart';
+import 'package:randomizer/pages/gamble/gamble_bloc.dart';
 import 'package:randomizer/pages/gamble/gamble_page.dart';
 import 'package:randomizer/pages/numbers/numbers_bloc.dart';
 import 'package:randomizer/pages/numbers/numbers_page.dart';
@@ -44,6 +45,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   // Bloc
   final NumbersBloc _numbersBloc = NumbersBloc();
   final CustomBloc _customBloc = CustomBloc();
+  final GambleBloc _gambleBloc = GambleBloc();
 
   // Page data
   int _currentPageIndex = 0;
@@ -90,6 +92,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     // Bloc
     _numbersBloc.dispose();
     _customBloc.dispose();
+    _gambleBloc.dispose();
   }
 
   @override
@@ -101,6 +104,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       blocProviders: [
         BlocProvider<NumbersBloc>(bloc: _numbersBloc),
         BlocProvider<CustomBloc>(bloc: _customBloc),
+        BlocProvider<GambleBloc>(bloc: _gambleBloc),
       ],
       child: DecoratedBox(
         decoration: BoxDecoration(color: colorSet[_previousPageIndex][0]),

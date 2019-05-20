@@ -3,10 +3,13 @@ import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:randomizer/config/global_config.dart';
 import 'package:randomizer/config/icons.dart';
 import 'package:randomizer/widget/alert_choose_widget.dart';
 import 'package:rxdart/rxdart.dart';
+
+import 'gamble_bloc.dart';
 
 class GamblePage extends StatefulWidget {
   final Observable<Null> onRandomClick;
@@ -19,7 +22,7 @@ class GamblePage extends StatefulWidget {
 
 class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
   // Bloc
-//  CustomBloc _bloc;
+  GambleBloc _bloc;
 
   // Animation
   double _opacity = 0.0;
@@ -31,8 +34,6 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
   StreamSubscription _clickSubscription;
 
   // Data
-  int _diceAmount = 3;
-  List<int> _random = [1, 2, 3, 4];
   final _dices = const [
     CustomIcons.dice_1,
     CustomIcons.dice_2,
@@ -54,7 +55,7 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     // Init bloc
-//    _initBloc();
+    _initBloc();
 
     // Subscribe to random click
     _clickSubscription = widget.onRandomClick.skipWhile((_) => !mounted).listen((_) {
@@ -69,6 +70,10 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
     });
 
     _initAnimation();
+  }
+
+  _initBloc() {
+    _bloc = BlocProvider.of<GambleBloc>(context);
   }
 
   _initAnimation() {
@@ -100,28 +105,26 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
     _controller.forward();
     // Set new random when dices won't be visible
     Future.delayed(Duration(milliseconds: (_animDurationInMillis * .15).toInt()), () {
-      setState(() {
-        for (int i = 0; i < 4; i++) {
-          _random[i] = _randomizer.nextInt(6);
-        }
-      });
+      var newRandom = List<int>(4);
+      for (int i = 0; i < 4; i++) {
+        newRandom[i] = _randomizer.nextInt(6);
+      }
+      _bloc.dispatch(GambleEventNewRandom(newRandom));
     });
   }
 
   _showChooserDialog() {
     final double iconSize = 36;
     final double space = 4;
-
-    Icon getIcon(int index) => Icon(_dices[_random[index]], size: iconSize);
+    final List<int> random = _bloc.currentState.random;
+    Icon getIcon(int index) => Icon(_dices[random[index]], size: iconSize);
 
     showDialog(
       context: context,
       builder: (BuildContext context) => ChooserDialog(
             title: "Choose dice amount",
             callBack: (value) {
-              setState(() {
-                _diceAmount = value;
-              });
+              _bloc.dispatch(GambleEventNewAmount(value));
               Navigator.of(context).pop();
             },
             options: {
@@ -163,80 +166,81 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
     return AnimatedOpacity(
         duration: Duration(milliseconds: TransitionDuration.FAST),
         opacity: _opacity,
-        child: GestureDetector(
-            onTap: () {
-              FocusScope.of(context).requestFocus(FocusNode());
-            },
-            child: Container(
-                alignment: Alignment(0, 0),
-                margin: EdgeInsets.all(10),
-                color: Colors.transparent,
-                child: Column(
-                  children: <Widget>[
-                    AutoSizeText(
-                      "Roll the dice!",
-                      maxLines: 1,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 32, color: _textColor),
-                    ),
-                    SizedBox(height: 16),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            "Dices:",
-                            style: TextStyle(fontSize: 24),
-                          ),
-                          SizedBox(width: 5),
-                          InkWell(
-                            borderRadius: BorderRadius.circular(10),
-                            onTap: _showChooserDialog,
-                            child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8).copyWith(right: 0),
-                              decoration: BoxDecoration(
-                                color: colorSet[2][2].withOpacity(.5),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Row(
-                                children: <Widget>[
-                                  Text(
-                                    "$_diceAmount",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-                                  ),
-                                  Icon(
-                                    Icons.arrow_drop_down,
-                                    color: Colors.white,
-                                  )
-                                ],
-                              ),
-                            ),
-                          )
-                        ],
+        child: Container(
+            alignment: Alignment(0, 0),
+            margin: EdgeInsets.all(10),
+            color: Colors.transparent,
+            child: Column(
+              children: <Widget>[
+                AutoSizeText(
+                  "Roll the dice!",
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 32, color: _textColor),
+                ),
+                SizedBox(height: 16),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        "Dices:",
+                        style: TextStyle(fontSize: 24),
                       ),
-                    ),
-                    Expanded(
-                        child: AnimatedBuilder(
-                            animation: _controller,
-                            builder: (context, _) {
-                              return Transform.scale(
-                                scale: _scaleAnimation.value,
-                                child: _buildContent(),
-                              );
-                            })),
-                  ],
-                ))));
+                      SizedBox(width: 5),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: _showChooserDialog,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8).copyWith(right: 0),
+                          decoration: BoxDecoration(
+                            color: colorSet[2][2].withOpacity(.5),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: BlocBuilder<GambleEvent, GambleState>(
+                            bloc: _bloc,
+                            builder: (context, state) => Row(
+                                  children: <Widget>[
+                                    Text(
+                                      "${state.amount}",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                                    ),
+                                    Icon(
+                                      Icons.arrow_drop_down,
+                                      color: Colors.white,
+                                    )
+                                  ],
+                                ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                Expanded(
+                    child: AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, _) {
+                          return Transform.scale(
+                            scale: _scaleAnimation.value,
+                            child: BlocBuilder<GambleEvent, GambleState>(
+                                bloc: _bloc,
+                                builder: (context, GambleState state) => _buildContent(state.amount, state.random)),
+                          );
+                        })),
+              ],
+            )));
   }
 
   ///Shows dices rely to dice amount
-  _buildContent() {
-    switch (_diceAmount) {
+  _buildContent(int amount, List<int> random) {
+    switch (amount) {
       case 1:
         return Icon(
-          _dices[_random[0]],
+          _dices[random[0]],
           size: _diceSize,
           color: Colors.white,
         );
@@ -248,7 +252,7 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
             Padding(
               padding: EdgeInsets.all(_padding),
               child: Icon(
-                _dices[_random[0]],
+                _dices[random[0]],
                 size: _diceSize,
                 color: Colors.white,
               ),
@@ -256,7 +260,7 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
             Padding(
               padding: EdgeInsets.all(_padding),
               child: Icon(
-                _dices[_random[1]],
+                _dices[random[1]],
                 size: _diceSize,
                 color: Colors.white,
               ),
@@ -271,7 +275,7 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
             Padding(
               padding: EdgeInsets.all(_padding),
               child: Icon(
-                _dices[_random[0]],
+                _dices[random[0]],
                 size: _diceSize,
                 color: Colors.white,
               ),
@@ -282,7 +286,7 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
                 Padding(
                   padding: EdgeInsets.all(_padding),
                   child: Icon(
-                    _dices[_random[1]],
+                    _dices[random[1]],
                     size: _diceSize,
                     color: Colors.white,
                   ),
@@ -290,7 +294,7 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
                 Padding(
                   padding: EdgeInsets.all(_padding),
                   child: Icon(
-                    _dices[_random[2]],
+                    _dices[random[2]],
                     size: _diceSize,
                     color: Colors.white,
                   ),
@@ -310,7 +314,7 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
                 Padding(
                   padding: EdgeInsets.all(_padding),
                   child: Icon(
-                    _dices[_random[0]],
+                    _dices[random[0]],
                     size: _diceSize,
                     color: Colors.white,
                   ),
@@ -318,7 +322,7 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
                 Padding(
                   padding: EdgeInsets.all(_padding),
                   child: Icon(
-                    _dices[_random[1]],
+                    _dices[random[1]],
                     size: _diceSize,
                     color: Colors.white,
                   ),
@@ -331,7 +335,7 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
                 Padding(
                   padding: EdgeInsets.all(_padding),
                   child: Icon(
-                    _dices[_random[2]],
+                    _dices[random[2]],
                     size: _diceSize,
                     color: Colors.white,
                   ),
@@ -339,7 +343,7 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
                 Padding(
                   padding: EdgeInsets.all(_padding),
                   child: Icon(
-                    _dices[_random[3]],
+                    _dices[random[3]],
                     size: _diceSize,
                     color: Colors.white,
                   ),
