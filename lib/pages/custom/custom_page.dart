@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:randomizer/config/global_config.dart';
 import 'package:randomizer/pages/custom/custom_bloc.dart';
-import 'package:randomizer/pages/custom/random_result_widget.dart';
+import 'package:randomizer/widget/random_result_widget.dart';
 import 'package:randomizer/widget/alert_widget.dart';
 import 'package:randomizer/widget/helper/add_to_clipboard_widget.dart';
 import 'package:rxdart/rxdart.dart';

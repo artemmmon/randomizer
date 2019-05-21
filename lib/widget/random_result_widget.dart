@@ -26,6 +26,7 @@ class _AnimatedRandomResultState extends State<AnimatedRandomResult> with Ticker
 
   @override
   void initState() {
+    print("RANDOM_RES_WIDGET: BUILD");
     super.initState();
     if (widget.animate) {
       // Init Animation
@@ -49,6 +50,7 @@ class _AnimatedRandomResultState extends State<AnimatedRandomResult> with Ticker
 
   @override
   Widget build(BuildContext context) {
+    print("RANDOM_RES_WIDGET: BUILD");
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: widget.animate

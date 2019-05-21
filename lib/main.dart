@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:randomizer/config/global_config.dart';
 import 'package:randomizer/config/icons.dart';
+import 'package:randomizer/pages/answers/answers_bloc.dart';
 import 'package:randomizer/pages/answers/answers_page.dart';
 import 'package:randomizer/pages/custom/custom_bloc.dart';
 import 'package:randomizer/pages/custom/custom_page.dart';
@@ -46,6 +47,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final NumbersBloc _numbersBloc = NumbersBloc();
   final CustomBloc _customBloc = CustomBloc();
   final GambleBloc _gambleBloc = GambleBloc();
+  final AnswersBloc _answersBloc = AnswersBloc();
 
   // Page data
   int _currentPageIndex = 0;
@@ -93,6 +95,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _numbersBloc.dispose();
     _customBloc.dispose();
     _gambleBloc.dispose();
+    _answersBloc.dispose();
   }
 
   @override
@@ -105,6 +108,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         BlocProvider<NumbersBloc>(bloc: _numbersBloc),
         BlocProvider<CustomBloc>(bloc: _customBloc),
         BlocProvider<GambleBloc>(bloc: _gambleBloc),
+        BlocProvider<AnswersBloc>(bloc: _answersBloc),
       ],
       child: DecoratedBox(
         decoration: BoxDecoration(color: colorSet[_previousPageIndex][0]),
@@ -166,7 +170,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           return GamblePage(_clickSubject);
           break;
         case 3:
-          return AnswersPage();
+          return AnswersPage(_clickSubject);
           break;
         default:
           return NumbersPage(_clickSubject);
