@@ -9,7 +9,7 @@ class AnimatedRandomResult extends StatefulWidget {
   // Config
   final bool animate;
 
-  AnimatedRandomResult(this.value, {this.textColor = Colors.black, this.animate = true});
+  AnimatedRandomResult(this.value, {Key key, this.textColor = Colors.black, this.animate = true}) : super(key: key);
 
   @override
   _AnimatedRandomResultState createState() => _AnimatedRandomResultState();
@@ -26,17 +26,9 @@ class _AnimatedRandomResultState extends State<AnimatedRandomResult> with Ticker
 
   @override
   void initState() {
-    print("RANDOM_RES_WIDGET: BUILD");
     super.initState();
     if (widget.animate) {
-      // Init Animation
-      _controller = AnimationController(vsync: this, duration: Duration(milliseconds: _animDurationInMillis));
-      _scaleAnimation = TweenSequence([
-        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 1.8), weight: 1),
-        TweenSequenceItem(tween: Tween<double>(begin: 1.8, end: 1), weight: 1)
-      ].toList())
-          .animate(CurvedAnimation(parent: _controller, curve: Curves.ease));
-
+      _initAnimation();
       // Start Animation
       _controller.forward();
     }
@@ -49,8 +41,32 @@ class _AnimatedRandomResultState extends State<AnimatedRandomResult> with Ticker
   }
 
   @override
+  void didUpdateWidget(AnimatedRandomResult oldWidget) {
+    print("didUpdateWidget");
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      // Init animation if need
+      if (_controller == null) {
+        _initAnimation();
+      }
+      // Start animation
+      _controller.reset();
+      _controller.forward();
+    }
+  }
+
+  _initAnimation() {
+    // Init Animation
+    _controller = AnimationController(vsync: this, duration: Duration(milliseconds: _animDurationInMillis));
+    _scaleAnimation = TweenSequence([
+      TweenSequenceItem(tween: Tween<double>(begin: 0, end: 1.8), weight: 1),
+      TweenSequenceItem(tween: Tween<double>(begin: 1.8, end: 1), weight: 1)
+    ].toList())
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.ease));
+  }
+
+  @override
   Widget build(BuildContext context) {
-    print("RANDOM_RES_WIDGET: BUILD");
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: widget.animate

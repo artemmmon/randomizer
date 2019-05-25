@@ -24,8 +24,8 @@ class CustomBloc extends Bloc<CustomEvent, CustomState> {
         break;
       case CustomEventNewRandom:
         yield currentState
-          ..random = event.value
-          ..items.clear();
+          ..random = event.value;
+//          ..items.clear();
         break;
       case CustomEventClearItems:
         yield currentState
