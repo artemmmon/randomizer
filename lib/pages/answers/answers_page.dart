@@ -49,10 +49,8 @@ class _AnswersPageState extends State<AnswersPage> {
     _bloc = BlocProvider.of<AnswersBloc>(context);
 
     // Subscribe to random click
-    _clickSubscription = widget.onRandomClick
-        .skipWhile((_) => !mounted)
-//        .debounce((_) => TimerStream(true, const Duration(milliseconds: TransitionDuration.SLOW)))
-        .listen((_) {
+    _clickSubscription =
+        widget.onRandomClick.skipWhile((_) => !mounted).throttleTime(Duration(milliseconds: TransitionDuration.SLOW)).listen((_) {
       _randomize();
     });
   }
@@ -97,7 +95,6 @@ class _AnswersPageState extends State<AnswersPage> {
     return BlocBuilder(
       bloc: _bloc,
       builder: (context, AnswersState state) {
-        print("new State comming");
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[

@@ -42,7 +42,6 @@ class _AnimatedRandomResultState extends State<AnimatedRandomResult> with Ticker
 
   @override
   void didUpdateWidget(AnimatedRandomResult oldWidget) {
-    print("didUpdateWidget");
     super.didUpdateWidget(oldWidget);
     if (oldWidget.value != widget.value) {
       // Init animation if need
