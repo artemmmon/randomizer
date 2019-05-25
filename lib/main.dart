@@ -14,6 +14,7 @@ import 'package:randomizer/pages/gamble/gamble_page.dart';
 import 'package:randomizer/pages/numbers/numbers_bloc.dart';
 import 'package:randomizer/pages/numbers/numbers_page.dart';
 import 'package:rxdart/subjects.dart';
+import 'package:oktoast/oktoast.dart';
 
 void main() => runApp(MyApp());
 
@@ -21,16 +22,19 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        fontFamily: "CustomFont",
-        primaryTextTheme: Typography().white,
-        textTheme: Typography().white,
-        textSelectionColor: Colors.white.withOpacity(.2),
-        textSelectionHandleColor: Colors.white,
+    return OKToast(
+      movingOnWindowChange: true,
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          fontFamily: "CustomFont",
+          primaryTextTheme: Typography().white,
+          textTheme: Typography().white,
+          textSelectionColor: Colors.white.withOpacity(.2),
+          textSelectionHandleColor: Colors.white,
+        ),
+        home: HomePage(),
       ),
-      home: HomePage(),
     );
   }
 }

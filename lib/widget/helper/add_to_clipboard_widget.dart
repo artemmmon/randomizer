@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:oktoast/oktoast.dart';
 
 class AddToClipboard extends StatelessWidget {
   final Function getData;
@@ -20,6 +21,6 @@ class AddToClipboard extends StatelessWidget {
   /// Adds random result to clipboard
   _addToClipboard() {
     Clipboard.setData(ClipboardData(text: getData().toString()));
-    //todo show centered toast
+    showToast("Data saved to clipboard", position: ToastPosition.center);
   }
 }
