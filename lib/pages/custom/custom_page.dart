@@ -152,7 +152,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
         .animate(CurvedAnimation(parent: _validationAnimController, curve: Curves.ease));
   }
 
-  bool _validate() => _textController.text.isNotEmpty;
+  bool _validate() => _textController.text.trim().isNotEmpty;
 
   _addItemClick([bool fast = false]) {
     if (fast) {
@@ -182,7 +182,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     }
 
     // Set new state
-    final value = _textController.text;
+    final value = _textController.text.trim();
 
     var index = _data.length;
     setState(() {
@@ -319,26 +319,21 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: <Widget>[
-//        Flexible(
-//            flex: 1,
-//            child: AnimatedOpacity(
-//              opacity: _data.length >= _MAX_COUNT ? 0 : 1,
-//              duration: Duration(milliseconds: TransitionDuration.FAST),
-//              child: IgnorePointer(
-//                ignoring: _data.length >= _MAX_COUNT,
-//                child: IconButton(
-//                  onPressed: () => _addItemClick(true),
-//                  icon: Icon(
-//                    Icons.add,
-//                    color: _textColor,
-//                  ),
-//                ),
-//              ),
-//            )),
+        Flexible(
+            flex: 1,
+            child: IconButton(
+              onPressed: () {
+                //todo show lists dialog
+              },
+              icon: Icon(
+                Icons.list,
+                color: _textColor,
+              ),
+            )),
         Expanded(
             flex: 4,
             child: AnimatedOpacity(
-                opacity: _data.length >= _MAX_COUNT ? 0 : 1,
+                opacity: _data.length >= _MAX_COUNT ? 0 :  1,
                 duration: Duration(milliseconds: TransitionDuration.FAST),
                 child: IgnorePointer(
                   ignoring: _data.length >= _MAX_COUNT,

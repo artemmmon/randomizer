@@ -18,9 +18,9 @@ class AddToClipboard extends StatelessWidget {
     );
   }
 
-  /// Adds random result to clipboard
+  /// Adds random result to clipboard and shows toast
   _addToClipboard() {
     Clipboard.setData(ClipboardData(text: getData().toString()));
-    showToast("Data saved to clipboard", position: ToastPosition.center);
+    showToast("Data saved to clipboard", duration: Duration(milliseconds: 1500));
   }
 }

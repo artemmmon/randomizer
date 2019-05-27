@@ -24,6 +24,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return OKToast(
       movingOnWindowChange: true,
+      backgroundColor: Colors.white.withOpacity(.9),
+      position: ToastPosition.center,
+      textStyle: TextStyle(
+        fontFamily: "CustomFont",
+        color: Colors.black,
+        fontWeight: FontWeight.bold,
+      ),
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
