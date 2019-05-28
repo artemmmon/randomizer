@@ -74,6 +74,20 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  jaguar_query:
+    dependency: transitive
+    description:
+      name: jaguar_query
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.2.8"
+  jaguar_query_sqflite:
+    dependency: "direct main"
+    description:
+      name: jaguar_query_sqflite
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.2.9"
   matcher:
     dependency: transitive
     description:
@@ -135,6 +149,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.5.5"
+  sqflite:
+    dependency: transitive
+    description:
+      name: sqflite
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.5"
   stack_trace:
     dependency: transitive
     description:
@@ -156,6 +177,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.4"
+  synchronized:
+    dependency: transitive
+    description:
+      name: synchronized
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.0"
   term_glyph:
     dependency: transitive
     description:
@@ -186,4 +214,4 @@ packages:
     version: "2.0.8"
 sdks:
   dart: ">=2.2.2 <3.0.0"
-  flutter: ">=0.3.0 <2.0.0"
+  flutter: ">=1.2.1 <2.0.0"

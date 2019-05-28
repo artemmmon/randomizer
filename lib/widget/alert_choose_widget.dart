@@ -8,10 +8,11 @@ class ChooserDialog extends StatelessWidget {
   final OnChose callBack;
 
   // Ui
+  final bool fixed;
   final double _padding = 16.0;
   final Color _textColor = Colors.black;
 
-  ChooserDialog({this.title, this.options, this.callBack});
+  ChooserDialog({this.title, this.options, this.callBack, this.fixed = true});
 
   @override
   Widget build(BuildContext context) {
@@ -49,17 +50,40 @@ class ChooserDialog extends StatelessWidget {
             style: TextStyle(fontSize: 28, color: Colors.black, fontWeight: FontWeight.w500),
           ),
           SizedBox(height: 16),
-          ...options.values
-              .map((value) => Material(
-                  color: Colors.white,
-                  child: InkWell(
-                    onTap: () => callBack(options.entries.firstWhere((entry) => entry.value == value).key),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: value,
-                    ),
-                  )))
-              .toList()
+          ...[
+            if (fixed)
+              ...options.values
+                  .map((value) => Material(
+                      color: Colors.white,
+                      child: InkWell(
+                        onTap: () => callBack(options.entries.firstWhere((entry) => entry.value == value).key),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: value,
+                        ),
+                      )))
+                  .toList(),
+            if (!fixed)
+              Expanded(
+                child: Scrollbar(
+                  child: ListView.builder(
+                    itemCount: options.length,
+                    itemBuilder: (context, position) {
+                      final value = options[position];
+                      return Material(
+                          color: Colors.white,
+                          child: InkWell(
+                            onTap: () => callBack(options.entries.firstWhere((entry) => entry.value == value).key),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: value,
+                            ),
+                          ));
+                    },
+                  ),
+                ),
+              )
+          ]
         ],
       ),
     );

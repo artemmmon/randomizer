@@ -4,12 +4,19 @@ import 'dart:math';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:jaguar_query_sqflite/jaguar_query_sqflite.dart';
+import 'package:oktoast/oktoast.dart';
 import 'package:randomizer/config/global_config.dart';
+import 'package:randomizer/data/CustomListBean.dart';
+import 'package:randomizer/data/CustomListModel.dart';
 import 'package:randomizer/pages/custom/custom_bloc.dart';
+import 'package:randomizer/widget/alert_choose_widget.dart';
 import 'package:randomizer/widget/random_result_widget.dart';
 import 'package:randomizer/widget/alert_widget.dart';
 import 'package:randomizer/widget/helper/add_to_clipboard_widget.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart' as path;
 
 class CustomPage extends StatefulWidget {
   final Observable<Null> onRandomClick;
@@ -23,6 +30,9 @@ class CustomPage extends StatefulWidget {
 class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
   // Bloc
   CustomBloc _bloc;
+
+  // Db
+  CustomListBean _customListBean;
 
   // Animation
   double _opacity = 0.0;
@@ -58,6 +68,9 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     // Init bloc
     _initBloc();
 
+    // Init db
+    _initDb();
+
     // Subscribe to random click
     _clickSubscription = widget.onRandomClick.skipWhile((_) => !mounted).listen((_) {
       _randomize();
@@ -85,6 +98,14 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     // Text
     _textController.dispose();
     _textFocusNode.dispose();
+    // Db
+    _customListBean?.dispose();
+  }
+
+  _initDb() async {
+    var dbPath = await getDatabasesPath();
+    final adapter = SqfliteAdapter(path.join(dbPath, "randomizer.db"));
+    _customListBean = CustomListBean(adapter);
   }
 
   _initBloc() {
@@ -125,7 +146,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
                         style: TextStyle(fontSize: 32, color: _textColor),
                       ),
                     ),
-                    _buildInput(),
+                    _buildInput(context),
                     Expanded(
                       child: AnimatedSwitcher(
                         duration: Duration(milliseconds: TransitionDuration.FAST),
@@ -270,6 +291,31 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     _bloc.dispatch(CustomEventNewRandom(value));
   }
 
+  _showHistoryDialog(BuildContext context) async {
+    // fixme temporary
+    // add some value
+    await _customListBean.insert(CustomListModel(DateTime.now().toString(), ["1", "2", "3"]));
+
+    final List<CustomListModel> data = await _customListBean.getAll();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => ChooserDialog(
+          title: "Select list from history",
+          callBack: (key) {
+            showToast(data[key].items.toString());
+            Navigator.of(context).pop();
+          },
+          fixed: false,
+          options: data.asMap().map((key, item) => MapEntry(
+              key,
+              Text(
+                item.name,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.black),
+              )))),
+    );
+  }
+
   _moveDown() {
     Future.delayed(Duration(milliseconds: (100).toInt())).then((_) {
       _scrollController.animateTo(
@@ -314,7 +360,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildInput() {
+  Widget _buildInput(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -323,7 +369,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
             flex: 1,
             child: IconButton(
               onPressed: () {
-                //todo show lists dialog
+                _showHistoryDialog(context);
               },
               icon: Icon(
                 Icons.list,
@@ -333,7 +379,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
         Expanded(
             flex: 4,
             child: AnimatedOpacity(
-                opacity: _data.length >= _MAX_COUNT ? 0 :  1,
+                opacity: _data.length >= _MAX_COUNT ? 0 : 1,
                 duration: Duration(milliseconds: TransitionDuration.FAST),
                 child: IgnorePointer(
                   ignoring: _data.length >= _MAX_COUNT,

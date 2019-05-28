@@ -227,8 +227,7 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
                           return Transform.scale(
                             scale: _scaleAnimation.value,
                             child: BlocBuilder<GambleEvent, GambleState>(
-                                bloc: _bloc,
-                                builder: (context, GambleState state) => _buildContent(state.amount, state.random)),
+                                bloc: _bloc, builder: (context, GambleState state) => _buildContent(state.amount, state.random)),
                           );
                         })),
               ],
