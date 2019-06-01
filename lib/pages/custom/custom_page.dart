@@ -16,7 +16,6 @@ import 'package:randomizer/widget/alert_widget.dart';
 import 'package:randomizer/widget/helper/add_to_clipboard_widget.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart' as path;
 
 class CustomPage extends StatefulWidget {
   final Observable<Null> onRandomClick;
@@ -31,8 +30,9 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
   // Bloc
   CustomBloc _bloc;
 
-  // Db
-  CustomListBean _customListBean;
+  CustomState get _currentState => _bloc.currentState;
+
+  List<String> get _items => _currentState.customListModel.items;
 
   // Animation
   double _opacity = 0.0;
@@ -43,8 +43,6 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
 
   // Data
   static const _MAX_COUNT = 50;
-  List<String> _data = List();
-  String _random;
   final GlobalKey<AnimatedListState> _listKey = GlobalKey();
 
   // Ui
@@ -67,9 +65,6 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     super.initState();
     // Init bloc
     _initBloc();
-
-    // Init db
-    _initDb();
 
     // Subscribe to random click
     _clickSubscription = widget.onRandomClick.skipWhile((_) => !mounted).listen((_) {
@@ -98,25 +93,13 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     // Text
     _textController.dispose();
     _textFocusNode.dispose();
-    // Db
-    _customListBean?.dispose();
-  }
-
-  _initDb() async {
-    var dbPath = await getDatabasesPath();
-    final adapter = SqfliteAdapter(path.join(dbPath, "randomizer.db"));
-    _customListBean = CustomListBean(adapter);
   }
 
   _initBloc() {
     _bloc = BlocProvider.of<CustomBloc>(context);
 
-    // Init values
-    _data = List()..addAll(_bloc.currentState.items);
-    _random = _bloc.currentState.random;
-
     // Dispatch text changes to bloc
-    _textController.text = _bloc.currentState.currentText;
+    _textController.text = _currentState.currentText;
     _textController.addListener(() => _bloc.dispatch(CustomEventSetText(_textController.text)));
   }
 
@@ -175,27 +158,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
 
   bool _validate() => _textController.text.trim().isNotEmpty;
 
-  _addItemClick([bool fast = false]) {
-    if (fast) {
-      addToBlocDummy(Random random) async {
-        for (var i = 0; i < 5; i++) {
-          _bloc.dispatch(CustomEventAddItem(random.nextInt(9999999).toString()));
-        }
-      }
-
-      final random = Random();
-      setState(() {
-        _random = null;
-        _data.add(random.nextInt(9999999).toString());
-        _data.add(random.nextInt(9999999).toString());
-        _data.add(random.nextInt(9999999).toString());
-        _data.add(random.nextInt(9999999).toString());
-        _data.add(random.nextInt(9999999).toString());
-      });
-      addToBlocDummy(random);
-      return;
-    }
-
+  _addItemClick() {
     // Validate
     if (!_validate()) {
       _validationAnimController.forward();
@@ -204,14 +167,15 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
 
     // Set new state
     final value = _textController.text.trim();
+    var index = _items.length;
 
-    var index = _data.length;
+    // Dispatch event to bloc
+    _bloc.dispatch(CustomEventAddItem(value));
+    // Make ui to react
     setState(() {
-      _random = null;
-      _data.add(value);
       _moveDown();
-      _textController.clear();
     });
+    _textController.clear();
 
     if (index > 0) {
       _listKey.currentState.insertItem(
@@ -219,9 +183,6 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
         duration: Duration(milliseconds: TransitionDuration.FAST),
       );
     }
-
-    // Dispatch event to bloc
-    _bloc.dispatch(CustomEventAddItem(value));
   }
 
   _deleteItemClick(String value) {
@@ -229,8 +190,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
       // Clear filed focus
       _textFocusNode.unfocus();
       // Remove
-      var index = _data.indexOf(value);
-      _data.removeAt(index);
+      var index = _items.indexOf(value);
       _listKey.currentState.removeItem(index, (BuildContext context, Animation<double> animation) {
         return FadeTransition(
           opacity: CurvedAnimation(parent: animation, curve: Interval(0.5, 1.0)),
@@ -264,39 +224,27 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     // Clear filed focus
     _textFocusNode.unfocus();
 
-    setState(() {
-      _data.clear();
-//      _listKey.currentState.
-    });
-
     // Dispatch event to bloc
     _bloc.dispatch(CustomEventClearItems());
   }
 
   _randomize() {
-    // If random != null or data is empty - do nothing
-    if (_random != null || _data.isEmpty) return;
+    // If data is empty - do nothing
+    if (_items.isEmpty) return;
 
     // Turn on animation
     _animateRandom = true;
 
-    // Set new state
-    final value = _data[Random().nextInt(_data.length)];
-    setState(() {
-      _random = value;
-      _data.clear();
-    });
+    // Randomize
+    final list = _items;
+    final value = list[Random().nextInt(list.length)];
 
     // Dispatch event to bloc
     _bloc.dispatch(CustomEventNewRandom(value));
   }
 
   _showHistoryDialog(BuildContext context) async {
-    // fixme temporary
-    // add some value
-    await _customListBean.insert(CustomListModel(DateTime.now().toString(), ["1", "2", "3"]));
-
-    final List<CustomListModel> data = await _customListBean.getAll();
+    final List<CustomListModel> data = await _bloc.fetchAllLists();
     showDialog(
       context: context,
       builder: (BuildContext context) => ChooserDialog(
@@ -327,13 +275,17 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
   }
 
   Widget _buildBody() {
-    if (_random != null) {
-      return _buildRandom(); // Random
-    } else if (_data.isEmpty) {
-      return _buildEmpty(); // Empty
-    } else {
-      return _buildContent(); // Usual
-    }
+    return BlocBuilder(
+        bloc: _bloc,
+        builder: (context, state) {
+          if (_currentState.random != null) {
+            return _buildRandom(); // Random
+          } else if (_items.isEmpty) {
+            return _buildEmpty(); // Empty
+          } else {
+            return _buildContent(); // Usual
+          }
+        });
   }
 
   Widget _buildEmpty() {
@@ -350,106 +302,114 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         AnimatedRandomResult(
-          _random,
+          _currentState.random,
           textColor: _textColor,
           animate: _animateRandom,
         ),
         SizedBox(height: 16),
-        AddToClipboard(() => _random),
+        AddToClipboard(() => _currentState.random),
       ],
     );
   }
 
   Widget _buildInput(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: <Widget>[
-        Flexible(
-            flex: 1,
-            child: IconButton(
-              onPressed: () {
-                _showHistoryDialog(context);
-              },
-              icon: Icon(
-                Icons.list,
-                color: _textColor,
-              ),
-            )),
-        Expanded(
-            flex: 4,
-            child: AnimatedOpacity(
-                opacity: _data.length >= _MAX_COUNT ? 0 : 1,
-                duration: Duration(milliseconds: TransitionDuration.FAST),
-                child: IgnorePointer(
-                  ignoring: _data.length >= _MAX_COUNT,
-                  child: AnimatedBuilder(
-                    animation: _validationAnimController,
-                    builder: (context, _) {
-                      return TextField(
-                        controller: _textController,
-                        focusNode: _textFocusNode,
-                        textInputAction: TextInputAction.done,
-                        onSubmitted: (_) => _addItemClick(),
-                        keyboardType: TextInputType.text,
-                        textAlign: TextAlign.center,
-                        maxLength: _maxNumberLength,
-                        maxLines: 1,
-                        buildCounter: (BuildContext context, {int currentLength, int maxLength, bool isFocused}) => null,
-                        style: TextStyle(fontSize: _inputTextSize, color: _textColor),
-                        cursorColor: _textColor,
-                        decoration: InputDecoration(
-                            filled: true,
-                            contentPadding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-                            hintStyle: TextStyle(color: _textColor),
-                            fillColor: _validationAnimController?.isAnimating == true ? _validationColorTween.value : _inputColor,
-                            border: OutlineInputBorder(
-                                borderSide: BorderSide(width: 0, style: BorderStyle.none),
-                                borderRadius: BorderRadius.circular(10)),
-                            hintText: "Enter item"),
-                      );
-                    },
-                  ),
-                ))),
-        Flexible(
-            flex: 1,
-            child: AnimatedOpacity(
-              opacity: _data.length >= _MAX_COUNT ? 0 : 1,
-              duration: Duration(milliseconds: TransitionDuration.FAST),
-              child: IgnorePointer(
-                ignoring: _data.length >= _MAX_COUNT,
-                child: GestureDetector(
-                  ////////
-                  // TEMPORARY FOR TEST
-                  ////////
-                  onLongPress: () => _addItemClick(true),
-                  ////////
-
+    return BlocBuilder(
+      bloc: _bloc,
+      builder: (context, CustomState state) {
+        if (state.random != null) {
+          return InkWell(
+            onTap: () {
+              _bloc.dispatch(CustomEventClearRandom());
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Text(state.customListModel.name),
+          );
+        } else {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              Flexible(
+                  flex: 1,
                   child: IconButton(
-                    onPressed: _addItemClick,
+                    onPressed: () {
+                      _showHistoryDialog(context);
+                    },
                     icon: Icon(
-                      Icons.add,
+                      Icons.list,
                       color: _textColor,
+                    ),
+                  )),
+              Expanded(
+                  flex: 4,
+                  child: AnimatedOpacity(
+                      opacity: _items.length >= _MAX_COUNT ? 0 : 1,
+                      duration: Duration(milliseconds: TransitionDuration.FAST),
+                      child: IgnorePointer(
+                        ignoring: _items.length >= _MAX_COUNT,
+                        child: AnimatedBuilder(
+                          animation: _validationAnimController,
+                          builder: (context, _) {
+                            return TextField(
+                              controller: _textController,
+                              focusNode: _textFocusNode,
+                              textInputAction: TextInputAction.done,
+                              onSubmitted: (_) => _addItemClick(),
+                              keyboardType: TextInputType.text,
+                              textAlign: TextAlign.center,
+                              maxLength: _maxNumberLength,
+                              maxLines: 1,
+                              buildCounter: (BuildContext context, {int currentLength, int maxLength, bool isFocused}) => null,
+                              style: TextStyle(fontSize: _inputTextSize, color: _textColor),
+                              cursorColor: _textColor,
+                              decoration: InputDecoration(
+                                  filled: true,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+                                  hintStyle: TextStyle(color: _textColor),
+                                  fillColor:
+                                      _validationAnimController?.isAnimating == true ? _validationColorTween.value : _inputColor,
+                                  border: OutlineInputBorder(
+                                      borderSide: BorderSide(width: 0, style: BorderStyle.none),
+                                      borderRadius: BorderRadius.circular(10)),
+                                  hintText: "Enter item"),
+                            );
+                          },
+                        ),
+                      ))),
+              Flexible(
+                  flex: 1,
+                  child: AnimatedOpacity(
+                    opacity: _items.length >= _MAX_COUNT ? 0 : 1,
+                    duration: Duration(milliseconds: TransitionDuration.FAST),
+                    child: IgnorePointer(
+                      ignoring: _items.length >= _MAX_COUNT,
+                      child: IconButton(
+                        onPressed: _addItemClick,
+                        icon: Icon(
+                          Icons.add,
+                          color: _textColor,
+                        ),
+                      ),
+                    ),
+                  )),
+              Flexible(
+                flex: 1,
+                child: AnimatedOpacity(
+                  opacity: _currentState.random != null || _items.isEmpty ? 0 : 1,
+                  duration: Duration(milliseconds: TransitionDuration.FAST),
+                  child: IgnorePointer(
+                    ignoring: _currentState.random != null || _items.isEmpty,
+                    child: IconButton(
+                      onPressed: _showDeleteDialog,
+                      icon: Icon(Icons.delete_sweep, color: _textColor),
                     ),
                   ),
                 ),
-              ),
-            )),
-        Flexible(
-          flex: 1,
-          child: AnimatedOpacity(
-            opacity: _random != null || _data.isEmpty ? 0 : 1,
-            duration: Duration(milliseconds: TransitionDuration.FAST),
-            child: IgnorePointer(
-              ignoring: _random != null || _data.isEmpty,
-              child: IconButton(
-                onPressed: _showDeleteDialog,
-                icon: Icon(Icons.delete_sweep, color: _textColor),
-              ),
-            ),
-          ),
-        )
-      ],
+              )
+            ],
+          );
+        }
+      },
     );
   }
 
@@ -477,7 +437,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
                   key: _listKey,
                   controller: _scrollController,
                   physics: BouncingScrollPhysics(),
-                  initialItemCount: _data.length,
+                  initialItemCount: _items.length,
                   itemBuilder: (context, position, animation) {
                     return AnimatedBuilder(
                       animation: animation,
@@ -485,7 +445,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
                         var offset = _mediaData.size.width * 2;
                         return Transform.translate(
                           offset: Offset(-offset + (animation.value * offset), 0),
-                          child: _buildItem(position, _data[position]),
+                          child: _buildItem(position, _items[position]),
                         );
                       },
                     );

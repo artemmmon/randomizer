@@ -15,11 +15,13 @@ class CustomListBean {
   final StrField items = StrField("items");
 
   dispose() {
-    _adapter?.close();
+    if (_adapter?.connection != null) {
+      _adapter?.close();
+    }
   }
 
   Future<Null> _createTable() async {
-    final st = Create(tableName, ifNotExists: true).addAutoPrimaryInt("_id").addStr("name").addStr("items");
+    final st = Create(tableName, ifNotExists: true).addStr("name", primary: true).addStr("items");
 
     await _adapter.createTable(st);
   }
