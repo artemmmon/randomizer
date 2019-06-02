@@ -4,18 +4,15 @@ import 'dart:math';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:jaguar_query_sqflite/jaguar_query_sqflite.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:randomizer/config/global_config.dart';
-import 'package:randomizer/data/CustomListBean.dart';
-import 'package:randomizer/data/CustomListModel.dart';
+import 'package:randomizer/data/custom_list_model.dart';
 import 'package:randomizer/pages/custom/custom_bloc.dart';
 import 'package:randomizer/widget/alert_choose_widget.dart';
-import 'package:randomizer/widget/random_result_widget.dart';
 import 'package:randomizer/widget/alert_widget.dart';
 import 'package:randomizer/widget/helper/add_to_clipboard_widget.dart';
+import 'package:randomizer/widget/random_result_widget.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:sqflite/sqflite.dart';
 
 class CustomPage extends StatefulWidget {
   final Observable<Null> onRandomClick;
@@ -67,7 +64,8 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     _initBloc();
 
     // Subscribe to random click
-    _clickSubscription = widget.onRandomClick.skipWhile((_) => !mounted).listen((_) {
+    _clickSubscription =
+        widget.onRandomClick.skipWhile((_) => !mounted).throttleTime(Duration(milliseconds: TransitionDuration.SLOW)).listen((_) {
       _randomize();
     });
 
@@ -244,24 +242,60 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
   }
 
   _showHistoryDialog(BuildContext context) async {
+    // Fetch data from db
     final List<CustomListModel> data = await _bloc.fetchAllLists();
+    // If data is empty show toast
+    if (data.isEmpty) {
+      showToast("You don't have any history yet.");
+      return;
+    }
+
+    String getName(CustomListModel item) {
+      var items = item.items;
+      var content = "[${items.getRange(0, items.length >= 3 ? 3 : items.length).join(", ")}]";
+      if (items.length > 3) {
+        content = content.replaceFirst("]", "...]", content.length - 1);
+      }
+//      return "${item.name} $content";
+      return "$content";
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) => ChooserDialog(
           title: "Select list from history",
           callBack: (key) {
-            showToast(data[key].items.toString());
+            // Make list
+            _reinitializeList(data[key].items);
+            // Emit new event
+            _bloc.dispatch(CustomEventPickModel(data[key]));
+            // Close dialog
             Navigator.of(context).pop();
           },
           fixed: false,
           options: data.asMap().map((key, item) => MapEntry(
               key,
               Text(
-                item.name,
+                getName(item),
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.black),
+                style: TextStyle(color: Colors.black, fontSize: 16),
               )))),
     );
+  }
+
+  _reinitializeList(List<String> newData) {
+    // If list isn't initialized yet - do nothing
+    if (_listKey.currentState == null) return;
+    // Remove all items
+    for (int i = _items.length - 1; i >= 0; i--) {
+      _listKey.currentState.removeItem(i, (BuildContext context, Animation<double> animation) {
+        return Container();
+      });
+    }
+    // Add new items
+    for (int i = 0; i < newData.length; i++) {
+      _listKey.currentState.insertItem(i, duration: Duration(milliseconds: 0));
+    }
   }
 
   _moveDown() {
@@ -317,12 +351,35 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
       bloc: _bloc,
       builder: (context, CustomState state) {
         if (state.random != null) {
-          return InkWell(
-            onTap: () {
-              _bloc.dispatch(CustomEventClearRandom());
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Text(state.customListModel.name),
+          return Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: InkWell(
+                onTap: () {
+                  _bloc.dispatch(CustomEventClearRandom());
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: colorSet[1][2].withOpacity(.5),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+//                    Icon(
+//                      Icons.arrow_back,
+//                      color: Colors.white,
+//                    ),
+                      Text(
+//                      "Back to data: ${state.customListModel.name}",
+                        "Back to data",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 24),
+                      ),
+                    ],
+                  ),
+                )),
           );
         } else {
           return Row(

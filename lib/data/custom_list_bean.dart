@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:jaguar_query_sqflite/jaguar_query_sqflite.dart';
 
-import 'CustomListModel.dart';
+import 'custom_list_model.dart';
 
 class CustomListBean {
   final SqfliteAdapter _adapter;
@@ -13,6 +13,7 @@ class CustomListBean {
   final IntField id = IntField("_id");
   final StrField name = StrField("name");
   final StrField items = StrField("items");
+  final String uniqueGroup = "uniqeContent";
 
   dispose() {
     if (_adapter?.connection != null) {
@@ -21,7 +22,7 @@ class CustomListBean {
   }
 
   Future<Null> _createTable() async {
-    final st = Create(tableName, ifNotExists: true).addStr("name", primary: true).addStr("items");
+    final st = Create(tableName, ifNotExists: true).addStr("name", primary: true).addStr("items", uniqueGroup: uniqueGroup);
 
     await _adapter.createTable(st);
   }
@@ -34,6 +35,7 @@ class CustomListBean {
     insert.set(name, model.name);
     insert.set(items, model.getItemsAsJson());
 
+    // todo fix exception here on 'items' duplicate
     return _adapter.insert(insert);
   }
 

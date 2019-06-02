@@ -67,6 +67,7 @@ class ChooserDialog extends StatelessWidget {
               Expanded(
                 child: Scrollbar(
                   child: ListView.builder(
+                    physics: BouncingScrollPhysics(),
                     itemCount: options.length,
                     itemBuilder: (context, position) {
                       final value = options[position];

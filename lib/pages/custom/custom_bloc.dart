@@ -1,8 +1,9 @@
 import 'package:bloc/bloc.dart';
 import 'package:jaguar_query_sqflite/jaguar_query_sqflite.dart';
-import 'package:randomizer/data/CustomListBean.dart';
-import 'package:randomizer/data/CustomListModel.dart';
+import 'package:randomizer/data/custom_list_bean.dart';
+import 'package:randomizer/data/custom_list_model.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:date_format/date_format.dart' as dateFormat;
 import 'package:path/path.dart' as path;
 
 class CustomBloc extends Bloc<CustomEvent, CustomState> {
@@ -45,18 +46,20 @@ class CustomBloc extends Bloc<CustomEvent, CustomState> {
         yield newState;
         break;
       case CustomEventNewRandom:
-        //todo need to store list only one time. Prevent copies
         // Store new list to db on new random
         var newModel = CustomListModel(_getModelName(), currentState.customListModel.items);
-        storeList(newModel);
-
         yield CustomState(currentState.currentText, newModel, (event as CustomEventNewRandom).value);
+
+        storeList(newModel);
         break;
       case CustomEventClearItems:
         yield CustomState(currentState.currentText, currentState.customListModel..items.clear(), null);
         break;
       case CustomEventClearRandom:
         yield CustomState(currentState.currentText, currentState.customListModel, null);
+        break;
+      case CustomEventPickModel:
+        yield CustomState(currentState.currentText, (event as CustomEventPickModel).value, null);
         break;
     }
   }
@@ -69,7 +72,20 @@ class CustomBloc extends Bloc<CustomEvent, CustomState> {
 }
 
 // Utils
-String _getModelName() => DateTime.now().toString();
+String _getModelName() {
+  var format = [
+    dateFormat.dd,
+    ".",
+    dateFormat.mm,
+    ".",
+    dateFormat.yyyy,
+    " ",
+    dateFormat.hh,
+    ":",
+    dateFormat.nn,
+  ];
+  return dateFormat.formatDate(DateTime.now(), format);
+}
 //
 
 abstract class CustomEvent {}
@@ -104,6 +120,12 @@ class CustomEventNewRandom extends CustomEvent {
 
 class CustomEventClearRandom extends CustomEvent {
   CustomEventClearRandom();
+}
+
+class CustomEventPickModel extends CustomEvent {
+  final CustomListModel value;
+
+  CustomEventPickModel(this.value);
 }
 
 class CustomState {
