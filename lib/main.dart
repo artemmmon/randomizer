@@ -1,8 +1,11 @@
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:oktoast/oktoast.dart';
 import 'package:randomizer/config/global_config.dart';
 import 'package:randomizer/config/icons.dart';
 import 'package:randomizer/pages/answers/answers_bloc.dart';
@@ -14,8 +17,6 @@ import 'package:randomizer/pages/gamble/gamble_page.dart';
 import 'package:randomizer/pages/numbers/numbers_bloc.dart';
 import 'package:randomizer/pages/numbers/numbers_page.dart';
 import 'package:rxdart/subjects.dart';
-import 'package:oktoast/oktoast.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'config/app_localization.dart';
 
@@ -62,11 +63,14 @@ class MyApp extends StatelessWidget {
         // Returns a locale which will be used by the app
         localeResolutionCallback: (locale, supportedLocales) {
           // Check if the current device locale is supported
-          for (var supportedLocale in supportedLocales) {
-            if (supportedLocale.languageCode == locale.languageCode &&
-                supportedLocale.countryCode == locale.countryCode) {
-              return supportedLocale;
+          try {
+            for (var supportedLocale in supportedLocales) {
+              if (supportedLocale.languageCode == locale.languageCode && supportedLocale.countryCode == locale.countryCode) {
+                return supportedLocale;
+              }
             }
+          } catch (e) {
+            return supportedLocales.first;
           }
           // If the locale of the device is not supported, use the first one
           // from the list (English, in this case).
