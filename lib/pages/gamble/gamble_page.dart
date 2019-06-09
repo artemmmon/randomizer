@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:randomizer/config/app_localization.dart';
 import 'package:randomizer/config/global_config.dart';
 import 'package:randomizer/config/icons.dart';
 import 'package:randomizer/widget/alert_choose_widget.dart';
@@ -122,7 +123,7 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
     showDialog(
       context: context,
       builder: (BuildContext context) => ChooserDialog(
-            title: "Choose dice amount",
+            title: AppLocalizations.of(context).translate("choose_dice_amount"),
             callBack: (value) {
               _bloc.dispatch(GambleEventNewAmount(value));
               Navigator.of(context).pop();
@@ -173,7 +174,7 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
             child: Column(
               children: <Widget>[
                 AutoSizeText(
-                  "Roll the dice!",
+                  AppLocalizations.of(context).translate("gamble_title"),
                   maxLines: 1,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 32, color: _textColor),
@@ -186,7 +187,7 @@ class _GamblePageState extends State<GamblePage> with TickerProviderStateMixin {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       Text(
-                        "Dices:",
+                        AppLocalizations.of(context).translate("dices"),
                         style: TextStyle(fontSize: 24),
                       ),
                       SizedBox(width: 5),

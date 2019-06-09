@@ -1,0 +1,97 @@
+{
+  "app_name": {
+    "en": "Randomizer",
+    "ru": "Randomizer",
+    "uk": "Randomizer"
+  },
+  "yes": {
+    "en": "yes",
+    "ru": "да",
+    "uk": "так"
+  },
+  "no": {
+    "en": "no",
+    "ru": "нет",
+    "uk": "ні"
+  },
+  "data_saved_message": {
+    "en": "Data saved to clipboard",
+    "ru": "Данные сохранены в буфер обмена",
+    "uk": "Дані збережені до буферу обміну"
+  },
+  "numbers_title": {
+    "en": "Randomize a number",
+    "ru": "Случайные числа",
+    "uk": "Випадкові номери"
+  },
+  "min": {
+    "en": "Min",
+    "ru": "От",
+    "uk": "Від"
+  },
+  "max": {
+    "en": "Max",
+    "ru": "До",
+    "uk": "До"
+  },
+  "custom_title": {
+    "en": "Randomize custom data",
+    "ru": "Собственные данные",
+    "uk": "Особисті дані"
+  },
+  "add_items_to_start": {
+    "en": "Add some items to start",
+    "ru": "Добавьте данные, что бы начать",
+    "uk": "Додайте дані, щоб почати"
+  },
+  "delete_all_items": {
+    "en": "Delete all items",
+    "ru": "Удалить все данные",
+    "uk": "Видали всі дані"
+  },
+  "delete_all_items_question": {
+    "en": "Are you sure that you want to delete all items?",
+    "ru": "Вы уверены что хотите удалить все данные?",
+    "uk": "Ви впевнені що зочете видалити всі дані?"
+  },
+  "empty_history": {
+    "en": "You don't have any history yet",
+    "ru": "У вас пока что нет истории данных",
+    "uk": "У вас поки немає історії даних"
+  },
+  "select_list_from_history": {
+    "en": "Select list from history",
+    "ru": "Выберите список с истории",
+    "uk": "Оберіть список з історії"
+  },
+  "back_to_data": {
+    "en": "Back to data",
+    "ru": "Назад к данным",
+    "uk": "Назад до даних"
+  },
+  "enter_item_hint": {
+    "en": "Enter item",
+    "ru": "Введите значение",
+    "uk": "Введіть значення"
+  },
+  "choose_dice_amount": {
+    "en": "Choose dice amount",
+    "ru": "Выберите количество кубиков",
+    "uk": "Оберіть кількість кубиків"
+  },
+  "gamble_title": {
+    "en": "Roll the dice",
+    "ru": "Бросте кубик",
+    "uk": "Киньте кубик"
+  },
+  "dices": {
+    "en": "Dices:",
+    "ru": "Кубики:",
+    "uk": "Кубики:"
+  },
+  "": {
+    "en": "",
+    "ru": "",
+    "uk": ""
+  }
+}

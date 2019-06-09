@@ -5,6 +5,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:randomizer/config/app_localization.dart';
 import 'package:randomizer/config/global_config.dart';
 import 'package:randomizer/pages/numbers/numbers_bloc.dart';
 import 'package:randomizer/widget/helper/add_to_clipboard_widget.dart';
@@ -225,7 +226,7 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
                 Container(
                   margin: EdgeInsets.all(10),
                   child: AutoSizeText(
-                    "Randomize a Number!",
+                    AppLocalizations.of(context).translate("numbers_title"),
                     maxLines: 1,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 32),
@@ -287,7 +288,7 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
                   fillColor: colorSet[0][2].withOpacity(.2),
                   border: OutlineInputBorder(
                       borderSide: BorderSide(width: 0, style: BorderStyle.none), borderRadius: BorderRadius.circular(10)),
-                  hintText: "Min"),
+                  hintText: AppLocalizations.of(context).translate("min")),
             ),
           ),
           SizedBox(width: 20),
@@ -312,7 +313,7 @@ class _NumbersPageState extends State<NumbersPage> with TickerProviderStateMixin
                       fillColor: _validationColorTween?.value ?? colorSet[0][2].withOpacity(.2),
                       border: OutlineInputBorder(
                           borderSide: BorderSide(width: 0, style: BorderStyle.none), borderRadius: BorderRadius.circular(10)),
-                      hintText: "Max"),
+                      hintText: AppLocalizations.of(context).translate("max")),
                 ),
           )),
         ],

@@ -5,6 +5,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:oktoast/oktoast.dart';
+import 'package:randomizer/config/app_localization.dart';
 import 'package:randomizer/config/global_config.dart';
 import 'package:randomizer/data/custom_list_model.dart';
 import 'package:randomizer/pages/custom/custom_bloc.dart';
@@ -121,7 +122,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
                     Container(
                       margin: EdgeInsets.all(10),
                       child: AutoSizeText(
-                        "Randomize custom data!",
+                        AppLocalizations.of(context).translate("custom_title"),
                         maxLines: 1,
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 32, color: _textColor),
@@ -209,10 +210,10 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     showDialog(
       context: context,
       builder: (BuildContext context) => CustomDialog(
-            title: "Delete all items",
-            description: "Are you sure that you want to delete all items?",
-            negativeButton: "No",
-            positiveButton: "Yes",
+            title: AppLocalizations.of(context).translate("delete_all_items"),
+            description: AppLocalizations.of(context).translate("delete_all_items_question"),
+            negativeButton: AppLocalizations.of(context).translate("no"),
+            positiveButton: AppLocalizations.of(context).translate("yes"),
             positiveAction: _clear, // On agree clear all data
           ),
     );
@@ -246,7 +247,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     final List<CustomListModel> data = await _bloc.fetchAllLists();
     // If data is empty show toast
     if (data.isEmpty) {
-      showToast("You don't have any history yet.");
+      showToast(AppLocalizations.of(context).translate("empty_history"));
       return;
     }
 
@@ -263,7 +264,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
     showDialog(
       context: context,
       builder: (BuildContext context) => ChooserDialog(
-          title: "Select list from history",
+          title: AppLocalizations.of(context).translate("select_list_from_history"),
           callBack: (key) {
             // Make list
             _reinitializeList(data[key].items);
@@ -324,7 +325,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
 
   Widget _buildEmpty() {
     return AutoSizeText(
-      "Add some items to start.",
+      AppLocalizations.of(context).translate("add_items_to_start"),
       maxLines: 1,
       textAlign: TextAlign.center,
       style: TextStyle(fontSize: 24, color: _textColor),
@@ -367,13 +368,8 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-//                    Icon(
-//                      Icons.arrow_back,
-//                      color: Colors.white,
-//                    ),
                       Text(
-//                      "Back to data: ${state.customListModel.name}",
-                        "Back to data",
+                        AppLocalizations.of(context).translate("back_to_data"),
                         textAlign: TextAlign.center,
                         style: TextStyle(fontWeight: FontWeight.w500, fontSize: 24),
                       ),
@@ -428,7 +424,7 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
                                   border: OutlineInputBorder(
                                       borderSide: BorderSide(width: 0, style: BorderStyle.none),
                                       borderRadius: BorderRadius.circular(10)),
-                                  hintText: "Enter item"),
+                                  hintText: AppLocalizations.of(context).translate("enter_item_hint")),
                             );
                           },
                         ),

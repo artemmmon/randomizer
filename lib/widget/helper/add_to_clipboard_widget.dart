@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:oktoast/oktoast.dart';
+import 'package:randomizer/config/app_localization.dart';
 
 class AddToClipboard extends StatelessWidget {
   final Function getData;
@@ -14,13 +15,13 @@ class AddToClipboard extends StatelessWidget {
         Icons.content_copy,
         color: Colors.white,
       ),
-      onPressed: _addToClipboard,
+      onPressed: () => _addToClipboard(context),
     );
   }
 
   /// Adds random result to clipboard and shows toast
-  _addToClipboard() {
+  _addToClipboard(BuildContext context) {
     Clipboard.setData(ClipboardData(text: getData().toString()));
-    showToast("Data saved to clipboard", duration: Duration(milliseconds: 1500));
+    showToast(AppLocalizations.of(context).translate("data_saved_message"), duration: Duration(milliseconds: 1500));
   }
 }
