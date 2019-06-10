@@ -324,11 +324,14 @@ class _CustomPageState extends State<CustomPage> with TickerProviderStateMixin {
   }
 
   Widget _buildEmpty() {
-    return AutoSizeText(
-      AppLocalizations.of(context).translate("add_items_to_start"),
-      maxLines: 1,
-      textAlign: TextAlign.center,
-      style: TextStyle(fontSize: 24, color: _textColor),
+    return Padding(
+      padding: const EdgeInsets.all(10),
+      child: AutoSizeText(
+        AppLocalizations.of(context).translate("add_items_to_start"),
+        maxLines: 1,
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 24, color: _textColor),
+      ),
     );
   }
 

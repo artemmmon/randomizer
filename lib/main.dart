@@ -17,8 +17,8 @@ import 'package:randomizer/pages/gamble/gamble_page.dart';
 import 'package:randomizer/pages/numbers/numbers_bloc.dart';
 import 'package:randomizer/pages/numbers/numbers_page.dart';
 import 'package:rxdart/subjects.dart';
-
 import 'config/app_localization.dart';
+import 'package:flutter_statusbar_manager/flutter_statusbar_manager.dart';
 
 void main() => runApp(MyApp());
 
@@ -26,6 +26,9 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    // Make status bar icons white
+    _colorizeStatusBar();
+    // Build app
     return OKToast(
       movingOnWindowChange: true,
       backgroundColor: Colors.white.withOpacity(.9),
@@ -78,6 +81,11 @@ class MyApp extends StatelessWidget {
         },
       ),
     );
+  }
+
+  _colorizeStatusBar() async{
+    FlutterStatusbarManager.setStyle(StatusBarStyle.LIGHT_CONTENT);
+    FlutterStatusbarManager.setColor(Colors.transparent, animated: true);
   }
 }
 

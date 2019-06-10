@@ -31,6 +31,7 @@ dependencies:
   jaguar_query_sqflite: ^2.2.9
   date_format: ^1.0.6
   easy_localization: ^1.0.3+1
+  flutter_statusbar_manager: ^1.0.2
 
 dev_dependencies:
   flutter_test:
