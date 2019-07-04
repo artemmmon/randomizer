@@ -47,7 +47,7 @@
   "delete_all_items": {
     "en": "Delete all items",
     "ru": "Удалить все данные",
-    "uk": "Видали всі дані"
+    "uk": "Видалити всі дані"
   },
   "delete_all_items_question": {
     "en": "Are you sure that you want to delete all items?",

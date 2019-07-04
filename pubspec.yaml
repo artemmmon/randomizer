@@ -34,14 +34,17 @@ dependencies:
   flutter_statusbar_manager: ^1.0.2
 
 dev_dependencies:
+#  flutter_launcher_icons: "^0.7.0"
   flutter_test:
     sdk: flutter
 
-flutter_icons:
-  android: true
-  image_path_android: "assets/launcher/ic_launch.png"
-  adaptive_icon_background: "assets/launcher/ic_launch_background.png"
-  adaptive_icon_foreground: "assets/launcher/ic_launch_foreground.png"
+#flutter_icons:
+#  android: true
+#  ios: false
+#  image_path: "assets/launcher/ic_launch.png"
+#  image_path_android: "assets/launcher/ic_launch.png"
+#  adaptive_icon_background: "assets/launcher/ic_launch_background.png"
+#  adaptive_icon_foreground: "assets/launcher/ic_launch_foreground.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec

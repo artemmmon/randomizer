@@ -21,7 +21,7 @@ class CustomListBean {
   }
 
   Future<Null> _createTable() async {
-    final st = Create(tableName, ifNotExists: true).addPrimaryInt("id").addStr("name").addStr("items");
+    final st = Create(tableName, ifNotExists: true).addAutoPrimaryInt(id.name).addStr("name").addStr("items");
 
     await _adapter.createTable(st);
   }
@@ -32,18 +32,18 @@ class CustomListBean {
 
     Insert insert = Insert(tableName)..set(name, model.name)..set(items, model.getItemsAsJson());
 
-    var sameItems = await _getByItems(model.items);
-    if (sameItems != null) {
-      await delete(sameItems.name);
+    var sameItemsId = await _getIdByItems(model.items);
+    if (sameItemsId != null) {
+      await delete(sameItemsId);
     }
     return _adapter.insert(insert);
   }
 
-  Future delete(String name) async {
+  Future delete(int id) async {
     await _openDbIfNeeded();
     await _createTable();
 
-    Remove remove = Remove(tableName)..where(eqStr(this.name.name, name));
+    Remove remove = Remove(tableName)..where(eqInt(this.id.name, id));
     return await _adapter.remove(remove);
   }
 
@@ -78,6 +78,22 @@ class CustomListBean {
     if (rows.isNotEmpty) {
       Map row = rows.first;
       return CustomListModel(row["name"], items.map((value) => value).toList());
+    } else {
+      return null;
+    }
+  }
+
+  Future<int> _getIdByItems(List<String> items) async {
+    await _openDbIfNeeded();
+    await _createTable();
+
+    Find finder = Find(tableName)
+      ..selAll()
+      ..where(eq(this.items.name, jsonEncode(items)));
+    List<Map> rows = await _adapter.find(finder);
+    if (rows.isNotEmpty) {
+      Map row = rows.first;
+      return row["${this.id.name}"];
     } else {
       return null;
     }
