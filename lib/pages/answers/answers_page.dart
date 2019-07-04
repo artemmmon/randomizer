@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:randomizer/config/app_localization.dart';
 import 'package:randomizer/config/global_config.dart';
 import 'package:randomizer/widget/helper/add_to_clipboard_widget.dart';
 import 'package:randomizer/widget/random_result_widget.dart';
@@ -78,7 +79,7 @@ class _AnswersPageState extends State<AnswersPage> {
             child: Column(
               children: <Widget>[
                 AutoSizeText(
-                  "Get an answer!",
+                  AppLocalizations.of(context).translate("answers_title"),
                   maxLines: 1,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 32, color: _textColor),

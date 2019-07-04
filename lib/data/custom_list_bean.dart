@@ -9,11 +9,10 @@ class CustomListBean {
 
   CustomListBean(this._adapter);
 
-  final String tableName = "custom_Lists";
+  final String tableName = "custom_lists";
   final IntField id = IntField("_id");
   final StrField name = StrField("name");
   final StrField items = StrField("items");
-  final String uniqueGroup = "uniqeContent";
 
   dispose() {
     if (_adapter?.connection != null) {
@@ -22,7 +21,7 @@ class CustomListBean {
   }
 
   Future<Null> _createTable() async {
-    final st = Create(tableName, ifNotExists: true).addStr("name", primary: true).addStr("items", uniqueGroup: uniqueGroup);
+    final st = Create(tableName, ifNotExists: true).addPrimaryInt("id").addStr("name").addStr("items");
 
     await _adapter.createTable(st);
   }
@@ -31,12 +30,21 @@ class CustomListBean {
     await _openDbIfNeeded();
     await _createTable();
 
-    Insert insert = Insert(tableName);
-    insert.set(name, model.name);
-    insert.set(items, model.getItemsAsJson());
+    Insert insert = Insert(tableName)..set(name, model.name)..set(items, model.getItemsAsJson());
 
-    // todo fix exception here on 'items' duplicate
+    var sameItems = await _getByItems(model.items);
+    if (sameItems != null) {
+      await delete(sameItems.name);
+    }
     return _adapter.insert(insert);
+  }
+
+  Future delete(String name) async {
+    await _openDbIfNeeded();
+    await _createTable();
+
+    Remove remove = Remove(tableName)..where(eqStr(this.name.name, name));
+    return await _adapter.remove(remove);
   }
 
   Future<List<CustomListModel>> getAll() async {
@@ -57,6 +65,22 @@ class CustomListBean {
     }
 
     return res;
+  }
+
+  Future<CustomListModel> _getByItems(List<String> items) async {
+    await _openDbIfNeeded();
+    await _createTable();
+
+    Find finder = Find(tableName)
+      ..selAll()
+      ..where(eq(this.items.name, jsonEncode(items)));
+    List<Map> rows = await _adapter.find(finder);
+    if (rows.isNotEmpty) {
+      Map row = rows.first;
+      return CustomListModel(row["name"], items.map((value) => value).toList());
+    } else {
+      return null;
+    }
   }
 
   Future<void> _openDbIfNeeded() async {

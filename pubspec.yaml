@@ -37,6 +37,12 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+flutter_icons:
+  android: true
+  image_path_android: "assets/launcher/ic_launch.png"
+  adaptive_icon_background: "assets/launcher/ic_launch_background.png"
+  adaptive_icon_foreground: "assets/launcher/ic_launch_foreground.png"
+
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
 
@@ -82,10 +88,10 @@ flutter:
   fonts:
     - family: CustomIcons
       fonts:
-      - asset: fonts/CustomIcons.ttf
+        - asset: fonts/CustomIcons.ttf
     - family: CustomFont
       fonts:
-      - asset: fonts/Comfortaa/Comfortaa[wght].ttf
+        - asset: fonts/Comfortaa/Comfortaa[wght].ttf
     - family: CustomMonoFont
       fonts:
         - asset: fonts/RobotoMono-Medium.ttf

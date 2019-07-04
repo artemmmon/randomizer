@@ -41,17 +41,15 @@ class _AnimatedRandomResultState extends State<AnimatedRandomResult> with Ticker
   }
 
   @override
-    void didUpdateWidget(AnimatedRandomResult oldWidget) {
+  void didUpdateWidget(AnimatedRandomResult oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.value != widget.value) {
-      // Init animation if need
-      if (_controller == null) {
-        _initAnimation();
-      }
-      // Start animation
-      _controller.reset();
-      _controller.forward();
+    // Init animation if need
+    if (_controller == null) {
+      _initAnimation();
     }
+    // Start animation
+    _controller.reset();
+    _controller.forward();
   }
 
   _initAnimation() {

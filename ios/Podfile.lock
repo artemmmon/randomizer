@@ -10,7 +10,7 @@ PODS:
     - FMDB (~> 2.7.2)
 
 DEPENDENCIES:
-  - Flutter (from `.symlinks/flutter/ios-release`)
+  - Flutter (from `.symlinks/flutter/ios`)
   - flutter_statusbar_manager (from `.symlinks/plugins/flutter_statusbar_manager/ios`)
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
 
@@ -20,7 +20,7 @@ SPEC REPOS:
 
 EXTERNAL SOURCES:
   Flutter:
-    :path: ".symlinks/flutter/ios-release"
+    :path: ".symlinks/flutter/ios"
   flutter_statusbar_manager:
     :path: ".symlinks/plugins/flutter_statusbar_manager/ios"
   sqflite:

@@ -83,7 +83,7 @@ class MyApp extends StatelessWidget {
     );
   }
 
-  _colorizeStatusBar() async{
+  _colorizeStatusBar() async {
     FlutterStatusbarManager.setStyle(StatusBarStyle.LIGHT_CONTENT);
     FlutterStatusbarManager.setColor(Colors.transparent, animated: true);
   }
@@ -101,7 +101,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final NumbersBloc _numbersBloc = NumbersBloc();
   final CustomBloc _customBloc = CustomBloc();
   final GambleBloc _gambleBloc = GambleBloc();
-  final AnswersBloc _answersBloc = AnswersBloc();
+  AnswersBloc _answersBloc;
 
   // Page data
   int _currentPageIndex = 0;
@@ -132,6 +132,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _initAnimations();
     //set portrait orientation only
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Init bloc
+    _answersBloc = AnswersBloc.create(AppLocalizations.of(context).locale);
   }
 
   @override
