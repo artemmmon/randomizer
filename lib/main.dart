@@ -456,19 +456,20 @@ class RevealProgressButtonPainter extends CustomPainter {
   Size _screenSize;
   Color _color;
   Offset _offset;
+  Paint _paint;
 
-  RevealProgressButtonPainter(this._fraction, this._screenSize, this._offset, this._color);
+  RevealProgressButtonPainter(this._fraction, this._screenSize, this._offset, this._color) {
+    _paint = Paint()
+      ..color = _color
+      ..style = PaintingStyle.fill;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
-    var paint = Paint()
-      ..color = _color
-      ..style = PaintingStyle.fill;
-
     var finalRadius = sqrt(pow(_screenSize.width / 1.1, 2) + pow(_screenSize.height / 1.1, 2));
     var radius = 10 + finalRadius * _fraction;
 
-    canvas.drawCircle(_offset, radius, paint);
+    canvas.drawCircle(_offset, radius, _paint);
   }
 
   @override
